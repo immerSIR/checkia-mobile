@@ -5,9 +5,7 @@ import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors } from '../../constants/colors';
 import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
-
-const API = 'https://your-railway-api.com/api';
+import { authAPI } from '../../services/api'; // ← authAPI, plus axios direct
 
 export default function Login() {
   const router = useRouter();
@@ -17,13 +15,29 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
+    console.log('🚀 Tentative login:', email, password);
+    if (!email || !password) {
+      setError('Veuillez remplir tous les champs.');
+      return;
+    }
     setLoading(true); setError('');
     try {
-      const { data } = await axios.post(`${API}/auth/token/`, { email, password });
-      await SecureStore.setItemAsync('token', data.access);
-      router.replace('/(tabs)');
-    } catch {
-      setError('Email ou mot de passe incorrect.');
+      console.log('📡 Appel API vers:', `${authAPI}/auth/token/`);
+      const { data } = await authAPI.login(email, password);
+      await SecureStore.setItemAsync('token', data.access);         // ← 'token' cohérent
+      await SecureStore.setItemAsync('refresh_token', data.refresh);
+      router.replace('/(tabs)/');
+    } catch (err: any) {
+      // Affiche l'erreur exacte dans la console Expo
+      console.log('STATUS:', err.response?.status);
+      console.log('DATA:', JSON.stringify(err.response?.data));
+      console.log('MESSAGE:', err.message);
+    
+      if (err.response?.status === 401) {
+        setError('Email ou mot de passe incorrect.');
+      } else {
+        setError(`Erreur: ${err.response?.status} - ${err.message}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -45,12 +59,14 @@ export default function Login() {
 
       <Button label="Se connecter" onPress={handleLogin} loading={loading} fullWidth />
 
-      <View style={styles.divider}><View style={styles.line}/><Text style={styles.divText}>ou</Text><View style={styles.line}/></View>
+      <View style={styles.divider}>
+        <View style={styles.line}/><Text style={styles.divText}>ou</Text><View style={styles.line}/>
+      </View>
 
       <Button label="🌐  Continuer avec Google" onPress={() => {}} variant="secondary" fullWidth />
 
       <Text style={styles.link} onPress={() => router.push('/(auth)/register')}>
-        Pas de compte ?  <Text style={{ color: Colors.accent }}>S'inscrire →</Text>
+        Pas de compte ?  <Text style={{ color: Colors.accent }}>S'inscrire </Text>
       </Text>
     </ScrollView>
   );

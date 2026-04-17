@@ -30,7 +30,7 @@ export default function Onboarding() {
       </View>
 
       <View style={styles.actions}>
-        <Button label="Commencer  →" onPress={() => router.push('/(auth)/register')} fullWidth />
+        <Button label="Commencer " onPress={() => router.push('/(auth)/register')} fullWidth />
         <Text style={styles.link} onPress={() => router.push('/(auth)/login')}>
           Déjà un compte ?  <Text style={{ color: Colors.accent }}>Se connecter</Text>
         </Text>

@@ -6,6 +6,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
+import { urlPreviewAPI } from '../../services/api';
 
 type Tab = 'Texte' | 'URL' | 'Image' | 'Son';
 type ImageAnalysis = 'ia' | 'contenu' | null;
@@ -34,6 +35,12 @@ export default function Verify() {
   const [sonUri, setSonUri]             = useState<string | null>(null);
   const [sonAnalysis, setSonAnalysis]   = useState<SonAnalysis>('transcription');
   const [langue, setLangue]             = useState('Français');
+  const [preview, setPreview] = useState<{
+    title: string; image: string; desc: string; source: string;
+  } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  // Dans le TextInput URL — ajoute onChangeText avec debounce
+const [urlTimer, setUrlTimer] = useState<any>(null);
 
   // ── validation selon tab actif
   const canAnalyze = () => {
@@ -43,6 +50,20 @@ export default function Verify() {
     if (tab === 'Son')   return sonUri !== null;
     return false;
   };
+
+  const fetchPreview = async (value: string) => {
+    if (!value.startsWith('http')) return;
+    setPreviewLoading(true);
+    try {
+      const { data } = await urlPreviewAPI.fetch(value);
+      setPreview(data);
+    } catch {
+      setPreview(null); // affiche "Aperçu non disponible"
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+  
 
   // ── lancer l'analyse
   const handleAnalyze = () => {
@@ -61,12 +82,22 @@ export default function Verify() {
     }, 850);
   };
 
+  const handleUrlChange = (value: string) => {
+    setUrl(value);
+    setPreview(null);
+    if (urlTimer) clearTimeout(urlTimer);
+    setUrlTimer(setTimeout(() => fetchPreview(value), 800));
+  };
+
+
+
   // ── sélecteur image
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') return;
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
+      allowsEditing: true,
       quality: 0.8,
     });
     if (!result.canceled) setImageUri(result.assets[0].uri);
@@ -137,7 +168,7 @@ export default function Verify() {
                 placeholder="https://  coller votre lien ici…"
                 placeholderTextColor={Colors.gray}
                 value={url}
-                onChangeText={setUrl}
+                onChangeText={handleUrlChange}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="url"
@@ -147,14 +178,38 @@ export default function Verify() {
             {/* Aperçu */}
             <Text style={[s.label, { marginTop: 18 }]}>Aperçu de l'article</Text>
             <View style={s.previewCard}>
-              <View style={s.previewImg}>
-                <Text style={s.previewImgTxt}>🖼  Aperçu image</Text>
-              </View>
-              <View style={{ padding: 12 }}>
-                <Text style={s.previewSource}>source.com · date</Text>
-                <Text style={s.previewTitle}>Titre de l'article apparaîtra ici</Text>
-                <Text style={s.previewSub}>Résumé automatique du contenu…</Text>
-              </View>
+              {previewLoading ? (
+                <ActivityIndicator color={Colors.accent} style={{ margin: 30 }} />
+              ) : preview ? (
+                <>
+                  {preview.image ? (
+                    <Image source={{ uri: preview.image }} style={{ width: '100%', height: 120 }} resizeMode="cover" />
+                  ) : (
+                    <View style={s.previewImg}>
+                      <Text style={s.previewImgTxt}>🖼  Pas d'image disponible</Text>
+                    </View>
+                  )}
+                  <View style={{ padding: 12 }}>
+                    <Text style={s.previewSource}>{preview.source} · maintenant</Text>
+                    <Text style={s.previewTitle} numberOfLines={2}>{preview.title || 'Titre non disponible'}</Text>
+                    <Text style={s.previewSub}   numberOfLines={3}>{preview.desc  || 'Résumé non disponible'}</Text>
+                  </View>
+                </>
+              ) : url.startsWith('http') && !previewLoading ? (
+                // ← URL valide mais scraping échoué (Facebook, Instagram, etc.)
+                <View style={[s.previewImg, { paddingVertical: 20 }]}>
+                  <Text style={s.previewImgTxt}>⚠️  Aperçu non disponible pour ce site</Text>
+                  <Text style={[s.previewImgTxt, { fontSize: 11, marginTop: 6, textAlign: 'center', paddingHorizontal: 16 }]}>
+                    Facebook, Instagram... bloquent le scraping.{'\n'}
+                    Copiez le texte du post et utilisez l'onglet Texte.
+                  </Text>
+                </View>
+              ) : (
+                // ← URL pas encore saisie
+                <View style={s.previewImg}>
+                  <Text style={s.previewImgTxt}>🖼  Aperçu image · source · résumé</Text>
+                </View>
+              )}
             </View>
 
             {/* Sources compatibles */}

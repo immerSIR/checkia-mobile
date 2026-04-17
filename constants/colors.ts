@@ -14,6 +14,7 @@ export const Colors = {
     false:      '#EF4444',   // verdict FAUX
     falseDim:   'rgba(239,68,68,0.10)',
     warning:    '#F59E0B',   // douteux
+    warnDim:    'rgba(245,158,11,0.12)',
   
     white:      '#F8FAFC',
     gray:       '#94A3B8',
