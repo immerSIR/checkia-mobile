@@ -1,18 +1,25 @@
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { Colors } from '../../constants/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { P } from '../../constants/colors';
+import { s } from '../../styles/profile.styles';
+import { HomeStats } from '../../components/home/HomeStats';
+import { MenuRow } from '../../components/profile/MenuRow';
 
 const MENU = [
-  { icon: '🔔', label: 'Notifications' },
-  { icon: '🌍', label: 'Langue : Français' },
-  { icon: '🌙', label: 'Mode sombre' },
-  { icon: '📤', label: "Partager l'app" },
-  { icon: '🔒', label: 'Confidentialité' },
+  { icon: 'notifications-outline', label: 'Notifications', value: 'Activées' },
+  { icon: 'globe-outline', label: 'Langue', value: 'Français' },
+  { icon: 'moon-outline', label: 'Mode sombre', value: 'Automatique' },
+  { icon: 'share-social-outline', label: "Partager l'app" },
+  { icon: 'lock-closed-outline', label: 'Confidentialité' },
 ];
 
 export default function Profile() {
   const router = useRouter();
+  
+  // On utilise les mêmes clés que dans ton HomeScreen pour que HomeStats fonctionne
+  const stats = { suivi: 24, vrai: 18, faux: 6 };
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync('token');
@@ -20,55 +27,53 @@ export default function Profile() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={{ padding: 22, paddingTop: 60 }}>
-      {/* Avatar */}
-      <View style={styles.avatarSection}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>IK</Text></View>
-        <Text style={styles.name}>Ibrahima Kone</Text>
-        <Text style={styles.location}>Bamako, Mali 🇲🇱</Text>
-        <View style={styles.verifiedBadge}><Text style={styles.verifiedText}>Membre vérifié ✓</Text></View>
-      </View>
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" />
+      <ScrollView style={s.screen} contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
+        
+        <View style={s.topBar}>
+          <Text style={s.topLabel}>— MON COMPTE</Text>
+          <TouchableOpacity style={s.settingsButton}><Ionicons name="settings-outline" size={18} color={P.muted} /></TouchableOpacity>
+        </View>
 
-      {/* Stats */}
-      <View style={styles.statsRow}>
-        {[['24', 'Vérifs', Colors.white], ['18', 'Vraies', Colors.accent], ['6', 'Fausses', Colors.false]].map(([val, lbl, clr]) => (
-          <View key={lbl as string} style={styles.statCard}>
-            <Text style={[styles.statVal, { color: clr as string }]}>{val}</Text>
-            <Text style={styles.statLbl}>{lbl}</Text>
+        <View style={s.profileRow}>
+          <View style={s.avatar}><Text style={s.avatarText}>IK</Text></View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.name}>Ibrahima Koné</Text>
+            <View style={s.locationRow}>
+              <Ionicons name="location-outline" size={13} color={P.muted} />
+              <Text style={s.location}>Bamako, Mali</Text>
+            </View>
+            <View style={s.verifiedBadge}><Text style={s.verifiedText}>VÉRIFIÉ · VRAI</Text></View>
           </View>
-        ))}
-      </View>
+        </View>
 
-      {/* Menu */}
-      {MENU.map((item) => (
-        <TouchableOpacity key={item.label} style={styles.menuItem}>
-          <Text style={styles.menuText}>{item.icon}  {item.label}</Text>
-          <Text style={styles.menuArrow}>›</Text>
+        {/* REUTILISATION DE HOMESTATS ICI */}
+        <HomeStats stats={stats} />
+
+        <TouchableOpacity style={s.streakCard} activeOpacity={0.9}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={s.streakIconWrap}><Ionicons name="flame" size={18} color="#B8680A" /></View>
+            <View>
+              <Text style={s.streakEyebrow}>SÉRIE</Text>
+              <Text style={s.streakTitle}>12 jours consécutifs</Text>
+            </View>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={P.muted} />
         </TouchableOpacity>
-      ))}
 
-      {/* Déconnexion */}
-      <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-        <Text style={[styles.menuText, { color: Colors.false }]}>🚪  Déconnexion</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <Text style={s.sectionLabel}>— PARAMÈTRES</Text>
+        <View style={{ marginBottom: 20 }}>
+          {MENU.map((item, i) => (
+            <MenuRow key={item.label} item={item} isLast={i === MENU.length - 1} />
+          ))}
+          <TouchableOpacity style={s.logoutRow} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color={P.danger} />
+            <Text style={s.logoutText}>Se déconnecter</Text>
+          </TouchableOpacity>
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  screen:        { flex: 1, backgroundColor: Colors.bg },
-  avatarSection: { alignItems: 'center', marginBottom: 28 },
-  avatar:        { width: 80, height: 80, borderRadius: 40, backgroundColor: Colors.accentDim, borderWidth: 2, borderColor: Colors.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  avatarText:    { fontSize: 24, fontWeight: '800', color: Colors.accent },
-  name:          { fontSize: 20, fontWeight: '800', color: Colors.white, marginBottom: 4 },
-  location:      { fontSize: 13, color: Colors.gray, marginBottom: 10 },
-  verifiedBadge: { backgroundColor: Colors.accentDim, borderWidth: 1, borderColor: Colors.accent, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 5 },
-  verifiedText:  { color: Colors.accent, fontSize: 12, fontWeight: '700' },
-  statsRow:      { flexDirection: 'row', gap: 12, marginBottom: 28 },
-  statCard:      { flex: 1, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 16, alignItems: 'center' },
-  statVal:       { fontSize: 26, fontWeight: '800', marginBottom: 4 },
-  statLbl:       { fontSize: 12, color: Colors.gray },
-  menuItem:      { backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, borderRadius: 12, padding: 16, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  menuText:      { fontSize: 14, color: Colors.white },
-  menuArrow:     { fontSize: 18, color: Colors.gray },
-});

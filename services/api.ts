@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-export const API_URL = 'https://9936-41-73-98-100.ngrok-free.app/api';
+export const API_URL = 'https://733d-169-150-218-59.ngrok-free.app/api';
 
 
 export const api = axios.create({ baseURL: API_URL });
@@ -26,7 +26,7 @@ export const factCheckAPI = {
 
 export const authAPI = {
   login: (email: string, password: string) =>
-    api.post('/auth/token/', { email, password }),
+    api.post('/auth/token/', {email, password }),
   register: (data: object) =>
     api.post('/auth/register/', data),
 };

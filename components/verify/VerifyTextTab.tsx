@@ -1,0 +1,72 @@
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { s } from '../../styles/verify.styles';
+import { P } from '../../constants/colors'
+
+type Props = {
+  texte: string;
+  setTexte: (value: string) => void;
+};
+
+export default function VerifyTextTab({ texte, setTexte }: Props) {
+  return (
+    <View>
+      <Text style={s.sectionLabel}>— COLLEZ OU TAPEZ</Text>
+
+      <View style={s.textareaWrap}>
+        <TextInput
+          style={s.textarea}
+          placeholder={`« Le gouvernement du Mali a annoncé la distribution\ngratuite de semences à 2 millions d'agriculteurs\navant la saison des pluies 2026. »`}
+          placeholderTextColor={P.muted}
+          multiline
+          value={texte}
+          onChangeText={setTexte}
+          textAlignVertical="top"
+          autoCapitalize="none"
+          autoCorrect={false}
+          maxLength={1000}
+        />
+
+        <View style={s.textareaFooter}>
+          <TouchableOpacity style={s.chip}>
+            <Ionicons name="globe-outline" size={13} color={P.muted} />
+            <Text style={s.chipText}>Français</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={s.chip}>
+            <Ionicons name="clipboard-outline" size={13} color={P.muted} />
+            <Text style={s.chipText}>Coller</Text>
+          </TouchableOpacity>
+
+          <Text style={s.counter}>{texte.length} / 1000</Text>
+        </View>
+      </View>
+
+      <Text style={s.sectionLabel}>— OPTIONS</Text>
+
+      <TouchableOpacity style={s.optionRow} activeOpacity={0.8}>
+        <View style={s.optionLeft}>
+          <Ionicons name="layers-outline" size={18} color={P.navy} />
+          <View style={s.optionTextWrap}>
+            <Text style={s.optionTitle}>Sources de fact-checking</Text>
+            <Text style={s.optionSub}>Benbere, MaliCheck, AFP, WikAfrica</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={P.muted} />
+      </TouchableOpacity>
+
+      <View style={s.optionRow}>
+        <View style={s.optionLeft}>
+          <Ionicons name="flash-outline" size={18} color={P.navy} />
+          <View style={s.optionTextWrap}>
+            <Text style={s.optionTitle}>Analyse approfondie</Text>
+            <Text style={s.optionSub}>Recherche étendue (+15s)</Text>
+          </View>
+        </View>
+        <View style={s.toggle}>
+          <View style={s.toggleThumb} />
+        </View>
+      </View>
+    </View>
+  );
+}
