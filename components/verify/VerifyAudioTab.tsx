@@ -28,7 +28,7 @@ export default function VerifyAudioTab({
           style={[s.recordBtn, isRecording && s.recordBtnActive]}
           onPress={onToggleRecording}
           activeOpacity={0.85}
-          
+          testID="record-button"
         >
           <Ionicons name={isRecording ? 'stop' : 'mic'} size={28} color={P.streakBg} />
         </TouchableOpacity>
@@ -60,6 +60,7 @@ export default function VerifyAudioTab({
         style={[s.importRow, audioUri && s.importRowActive]}
         onPress={onPickAudio}
         activeOpacity={0.8}
+        testID="import-audio-button"
       >
         <Ionicons
           name={audioUri ? 'musical-note' : 'cloud-upload-outline'}

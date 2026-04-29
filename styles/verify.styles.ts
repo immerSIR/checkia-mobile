@@ -1,19 +1,5 @@
 import { StyleSheet } from 'react-native';
-
-export const P = {
-  bg: '#F7F3E9',
-  surface: '#F5EDD8',
-  surfaceAlt: '#EEE8D6',
-  card: '#FFFFFF',
-  text: '#0F1E3D',
-  muted: '#6B7493',
-  line: '#E2DDCB',
-  navy: '#1E3A8A',
-  navyDark: '#10275A',
-  white: '#FFFFFF',
-  warning: '#B8860B',
-  warningBg: '#FDF3DC',
-};
+import { P } from "../constants/colors";
 
 export const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: P.bg },

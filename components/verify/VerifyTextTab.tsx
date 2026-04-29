@@ -1,7 +1,7 @@
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { s } from '../../styles/verify.styles';
-import { P } from '../../constants/colors'
+import { P } from '../../constants/colors';
 
 type Props = {
   texte: string;

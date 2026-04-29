@@ -19,10 +19,11 @@ export const s = StyleSheet.create({
     marginBottom: 15 
   },
   dateLabel: { 
-    fontSize: 10, 
+    fontSize: 12,
     fontWeight: '700', 
-    letterSpacing: 1.6, 
-    color: P.text 
+    letterSpacing: 1.2,
+    color: P.navy,
+    textTransform: 'uppercase'
   },
   header: { 
     flexDirection: 'row', 
@@ -30,14 +31,15 @@ export const s = StyleSheet.create({
     marginBottom: 25 
   },
   hello: { 
-    fontSize: 28, 
+    fontSize: 32,
     color: P.text, 
-    fontFamily: 'InstrumentSerif-Regular' 
+    fontFamily: 'InstrumentSerif-Regular',
+    lineHeight: 34
   },
   sub: { 
-    fontSize: 14, 
+    fontSize: 16,
     color: P.muted, 
-    marginTop: 5 
+    marginTop: 8
   },
   avatar: { 
     width: 42, 
@@ -65,18 +67,19 @@ export const s = StyleSheet.create({
     marginBottom: 12 
   },
   heroTitle: { 
-    fontSize: 22, 
+    fontSize: 28,
     color: P.white, 
     fontFamily: 'InstrumentSerif-Regular', 
-    marginBottom: 15 
+    marginBottom: 10,
+    lineHeight: 30
   },
   heroItalic: { 
     fontStyle: 'italic', 
     fontFamily: 'InstrumentSerif-Italic' 
   },
   heroSub: { 
-    fontSize: 12, 
-    color: 'rgba(255,255,255,0.6)', 
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
     marginBottom: 20 
   },
   heroBtn: { 
@@ -102,11 +105,12 @@ export const s = StyleSheet.create({
     minHeight: 70 
   },
   statValue: { 
-    fontSize: 22, 
-    fontFamily: 'InstrumentSerif-Regular' 
+    fontSize: 28,
+    fontFamily: 'InstrumentSerif-Regular',
+    marginBottom: 2
   },
   statLabel: { 
-    fontSize: 11, 
+    fontSize: 12,
     color: P.muted 
   },
   sectionHeader: { 
@@ -116,9 +120,15 @@ export const s = StyleSheet.create({
     marginBottom: 15 
   },
   sectionTitle: { 
-    fontSize: 22, 
+    fontSize: 24,
     fontFamily: 'InstrumentSerif-Regular', 
     color: P.text 
+  },
+  sectionCount: {
+    fontSize: 14,
+    color: P.muted,
+    marginLeft: 8,
+    fontFamily: 'System'
   },
   sectionLink: { 
     fontSize: 13, 
@@ -157,10 +167,12 @@ export const s = StyleSheet.create({
     fontWeight: '800' 
   },
   listTitle: { 
-    fontSize: 15, 
+    fontSize: 16,
     color: P.text, 
-    fontFamily: 'InstrumentSerif-Regular', 
-    marginBottom: 5 
+    fontFamily: 'System',
+    fontWeight: '500',
+    marginBottom: 5,
+    lineHeight: 20
   },
   metaText: { 
     fontSize: 12, 

@@ -1,7 +1,9 @@
-import { ActivityIndicator, SafeAreaView, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { ANALYSIS_STEPS, STEP_TITLES } from '../../constants/verify';
-import { P, as } from '../../styles/verify.styles';
+import { as } from '../../styles/verify.styles';
+import { P } from "../../constants/colors";
 
 type Props = {
   step: number;
@@ -14,9 +16,8 @@ export default function AnalyzingScreen({ step, onClose }: Props) {
   const timeLeft = Math.max(2, 8 - step * 1.5);
 
   return (
-    <SafeAreaView style={as.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={P.bg} />
-      <View style={as.header}>
+    <View style={[as.safe, { paddingBottom: 0 }]}>
+      <View style={[as.header, { paddingTop: 40 }]}>
         <TouchableOpacity style={as.closeBtn} onPress={onClose}>
           <Text style={as.closeBtnText}>✕</Text>
         </TouchableOpacity>
@@ -72,6 +73,6 @@ export default function AnalyzingScreen({ step, onClose }: Props) {
         </View>
         <Text style={as.timeValue}>~ {Math.round(timeLeft)}s</Text>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

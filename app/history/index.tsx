@@ -122,7 +122,12 @@ export default function History() {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.topBar}>
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.back()}
+          activeOpacity={0.85}
+          testID="back-button"
+        >
           <Ionicons name="arrow-back" size={18} color={palette.ink} />
         </TouchableOpacity>
 
@@ -134,7 +139,7 @@ export default function History() {
       </View>
 
       <View style={styles.hero}>
-        <Text style={styles.heroTitle}>
+        <Text style={styles.heroTitle} testID="history-count">
           24 <Text style={styles.heroItalic}>vérifications.</Text>
         </Text>
         <Text style={styles.heroSub}>Du 4 février au 12 mars 2026.</Text>

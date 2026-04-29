@@ -1,4 +1,6 @@
-import { ScrollView, SafeAreaView, StatusBar, View, Text, TouchableOpacity } from 'react-native';
+// app/(tabs)/learn.tsx
+import { ScrollView, StatusBar, View, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { s } from '../../styles/learn.styles';
@@ -18,11 +20,17 @@ export default function Learn() {
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        
+      <ScrollView
+        style={s.scroll}
+        contentContainerStyle={[s.content, { paddingBottom: 100 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <LearnHeader />
 
-        <Text style={s.pageTitle}>Apprendre à {'\n'}<Text style={s.pageTitleItalic}>décoder.</Text></Text>
+        <Text style={s.pageTitle}>
+          Apprendre à {'\n'}
+          <Text style={s.pageTitleItalic}>décoder.</Text>
+        </Text>
 
         <LearnChips activeIndex={0} />
 
@@ -30,7 +38,9 @@ export default function Learn() {
 
         <Text style={s.sectionLabel}>— CATÉGORIES</Text>
         <View style={s.catsRow}>
-          {CATS.map((c) => <CategoryCard key={c.lb} {...c} />)}
+          {CATS.map((c) => (
+            <CategoryCard key={c.lb} {...c} />
+          ))}
         </View>
 
         <View style={s.fichesTitleRow}>
@@ -43,9 +53,9 @@ export default function Learn() {
 
         <View style={s.articlesList}>
           {ARTICLES.map((a, i) => (
-            <ArticleRow 
-              key={a.slug} 
-              a={a} 
+            <ArticleRow
+              key={a.slug}
+              a={a}
               isLast={i === ARTICLES.length - 1}
               onPress={() => router.push(`/learn/${a.slug}`)}
             />

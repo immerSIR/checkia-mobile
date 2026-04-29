@@ -1,7 +1,8 @@
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SOURCES } from '../../constants/verify';
-import { P, s } from '../../styles/verify.styles';
+import { s } from '../../styles/verify.styles';
+import { P } from '../../constants/colors'
 
 type Props = {
   url: string;

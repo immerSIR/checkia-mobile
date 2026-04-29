@@ -1,4 +1,6 @@
-import { ScrollView, View, Text, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+// app/(tabs)/profile.tsx
+import { ScrollView, View, Text, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,8 +19,7 @@ const MENU = [
 
 export default function Profile() {
   const router = useRouter();
-  
-  // On utilise les mêmes clés que dans ton HomeScreen pour que HomeStats fonctionne
+
   const stats = { suivi: 24, vrai: 18, faux: 6 };
 
   const handleLogout = async () => {
@@ -29,31 +30,41 @@ export default function Profile() {
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView style={s.screen} contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
-        
+      <ScrollView
+        style={s.screen}
+        contentContainerStyle={[s.container, { paddingBottom: 100 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={s.topBar}>
           <Text style={s.topLabel}>— MON COMPTE</Text>
-          <TouchableOpacity style={s.settingsButton}><Ionicons name="settings-outline" size={18} color={P.muted} /></TouchableOpacity>
+          <TouchableOpacity style={s.settingsButton}>
+            <Ionicons name="settings-outline" size={18} color={P.muted} />
+          </TouchableOpacity>
         </View>
 
         <View style={s.profileRow}>
-          <View style={s.avatar}><Text style={s.avatarText}>IK</Text></View>
+          <View style={s.avatar}>
+            <Text style={s.avatarText}>IK</Text>
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={s.name}>Ibrahima Koné</Text>
             <View style={s.locationRow}>
               <Ionicons name="location-outline" size={13} color={P.muted} />
               <Text style={s.location}>Bamako, Mali</Text>
             </View>
-            <View style={s.verifiedBadge}><Text style={s.verifiedText}>VÉRIFIÉ · VRAI</Text></View>
+            <View style={s.verifiedBadge}>
+              <Text style={s.verifiedText}>VÉRIFIÉ · VRAI</Text>
+            </View>
           </View>
         </View>
 
-        {/* REUTILISATION DE HOMESTATS ICI */}
         <HomeStats stats={stats} />
 
         <TouchableOpacity style={s.streakCard} activeOpacity={0.9}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={s.streakIconWrap}><Ionicons name="flame" size={18} color="#B8680A" /></View>
+            <View style={s.streakIconWrap}>
+              <Ionicons name="flame" size={18} color="#B8680A" />
+            </View>
             <View>
               <Text style={s.streakEyebrow}>SÉRIE</Text>
               <Text style={s.streakTitle}>12 jours consécutifs</Text>
@@ -72,7 +83,6 @@ export default function Profile() {
             <Text style={s.logoutText}>Se déconnecter</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );

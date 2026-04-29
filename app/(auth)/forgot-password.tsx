@@ -56,7 +56,7 @@ export default function ForgotPassword() {
           </View>
 
           {/* Titre */}
-          <Text style={s.title}>
+          <Text style={s.title} testID="sent-title">
             Vérifiez votre{'\n'}
             <Text style={s.titleItalic}>messagerie.</Text>
           </Text>

@@ -71,7 +71,11 @@ export default function ResultScreen() {
 
       {/* ── Header ── */}
       <View style={s.header}>
-        <TouchableOpacity style={s.circleBtn} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={s.circleBtn}
+          onPress={() => router.back()}
+          testID="back-button"
+        >
           <Ionicons name="arrow-back" size={16} color={P.text} />
         </TouchableOpacity>
         <Text style={s.headerMeta}>
@@ -129,7 +133,7 @@ export default function ResultScreen() {
         </Text>
 
         {/* ── Sources croisées ── */}
-        <Text style={s.sectionLabel}>
+        <Text style={s.sectionLabel} testID="sources-title">
           — SOURCES CROISÉES · {RESULT.sources.length}
         </Text>
         <View style={s.sourcesList}>

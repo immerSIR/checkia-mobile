@@ -1,5 +1,7 @@
+// app/(tabs)/index.tsx
 import { useEffect, useState } from 'react';
-import { ScrollView, ActivityIndicator, SafeAreaView, StatusBar, View, Text, TouchableOpacity } from 'react-native';
+import { ScrollView, ActivityIndicator, StatusBar, View, Text, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { P } from '../../constants/colors';
 import { s } from '../../styles/home.styles';
@@ -18,42 +20,53 @@ export default function HomeScreen() {
   const [stats, setStats] = useState(MOCK_STATS);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
     try {
       const { data } = await factCheckAPI.getHistory();
       if (data?.length > 0) setHistory(data.slice(0, 5));
-    } catch (e) { console.log(e); } 
-    finally { setLoading(false); }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView style={s.screen} contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
-        
+      <ScrollView
+        style={s.screen}
+        contentContainerStyle={[s.container, { paddingBottom: 100 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <HomeHeader name="Ibrahima" />
-        
         <HomeHero />
-
         <HomeStats stats={stats} />
 
         <View style={s.sectionHeader}>
-          <Text style={s.sectionTitle}>Récentes</Text>
-          <TouchableOpacity onPress={() => router.push('/history')}><Text style={s.sectionLink}>Tout voir</Text></TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={s.sectionTitle}>Récentes</Text>
+            <Text style={s.sectionCount}>{history.length}</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/history')}>
+            <Text style={s.sectionLink}>Tout voir</Text>
+          </TouchableOpacity>
         </View>
 
         {loading ? (
           <ActivityIndicator color={P.navy} style={{ marginTop: 20 }} />
         ) : (
           history.map((item, i) => (
-            <HistoryRow 
-              key={item.id} 
-              item={item} 
-              isLast={i === history.length - 1} 
-              onPress={() => router.push(`/verify?id=${item.id}`)} 
+            <HistoryRow
+              key={item.id}
+              item={item}
+              isLast={i === history.length - 1}
+              onPress={() => router.push(`/verify?id=${item.id}`)}
             />
           ))
         )}

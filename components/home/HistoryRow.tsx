@@ -17,6 +17,7 @@ const getHistoryIcon = (item: any) => {
 export const HistoryRow = ({ item, isLast, onPress }: any) => {
   const ui = getVerdictUI(item.verdict);
   const icon = getHistoryIcon(item);
+  const domain = item.source || 'benbere.com';
 
   return (
     <TouchableOpacity style={[s.listItem, !isLast && s.listBorder]} onPress={onPress}>
@@ -26,7 +27,9 @@ export const HistoryRow = ({ item, isLast, onPress }: any) => {
 
       <View style={s.listBody}>
         <View style={[s.pill, { backgroundColor: ui.bg }]}>
-          <Text style={[s.pillText, { color: ui.color }]}>{ui.label}</Text>
+          <Text style={[s.pillText, { color: ui.color }]}>
+            {ui.label === 'FAUX' ? '× FAUX' : '✓ ' + ui.label}
+          </Text>
         </View>
 
         <Text style={s.listTitle} numberOfLines={2}>
@@ -34,13 +37,15 @@ export const HistoryRow = ({ item, isLast, onPress }: any) => {
         </Text>
 
         <Text style={s.metaText}>
-          {timeAgo(item.created_at)}
+          {domain} · {timeAgo(item.created_at)}
         </Text>
       </View>
 
-      <Text style={[s.score, { color: ui.color }]}>
-        {item.score || 87}%
-      </Text>
+      <View style={{ justifyContent: 'flex-end', paddingBottom: 2 }}>
+        <Text style={[s.score, { color: P.muted }]}>
+          {item.score || 87}%
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 };
