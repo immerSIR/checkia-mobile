@@ -7,7 +7,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import History from '../history/index';
 import { useRouter } from 'expo-router';
-import { factCheckAPI, imageVerificationAPI } from '../../services/api';
+import { factCheckAPI } from '../../services/api';
 
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
@@ -15,9 +15,6 @@ jest.mock('expo-router', () => ({
 
 jest.mock('../../services/api', () => ({
   factCheckAPI: {
-    getHistory: jest.fn(),
-  },
-  imageVerificationAPI: {
     getHistory: jest.fn(),
   },
 }));
@@ -53,7 +50,6 @@ describe('History Screen (verified-only)', () => {
         },
       ],
     });
-    (imageVerificationAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
   });
 
   it('rend le titre et le sous-titre alignés sur la Library', async () => {

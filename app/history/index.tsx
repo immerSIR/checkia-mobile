@@ -3,8 +3,8 @@ import { ActivityIndicator, ScrollView, View, Text, StyleSheet, TouchableOpacity
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FactCheck } from '../../data/homeData';
-import { factCheckAPI, imageVerificationAPI } from '../../services/api';
-import { mapImageToFactCheck, mapSubmissionToFactCheck } from '../../utils/apiMappers';
+import { factCheckAPI } from '../../services/api';
+import { mapSubmissionToFactCheck } from '../../utils/apiMappers';
 
 const palette = {
   bg: '#F7F3E9',
@@ -29,14 +29,9 @@ export default function History() {
     const loadHistory = async () => {
       setLoading(true);
       try {
-        const [submissions, imageVerifications] = await Promise.all([
-          factCheckAPI.getHistory(),
-          imageVerificationAPI.getHistory().catch(() => ({ data: [] })),
-        ]);
-        const merged = [
-          ...submissions.data.map(mapSubmissionToFactCheck),
-          ...imageVerifications.data.map(mapImageToFactCheck),
-        ]
+        const submissions = await factCheckAPI.getHistory();
+        const merged = submissions.data
+          .map(mapSubmissionToFactCheck)
           .filter((item) => item.verdict === 'VRAI')
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         setItems(merged);
@@ -49,11 +44,7 @@ export default function History() {
   }, []);
 
   const navigateToResult = (item: FactCheck) => {
-    if (String(item.id).startsWith('image-')) {
-      router.push(`/result/${String(item.id).replace('image-', '')}?kind=image`);
-    } else {
-      router.push(`/result/${item.id}?kind=text`);
-    }
+    router.push(`/result/${item.id}?kind=text`);
   };
 
   return (
@@ -96,12 +87,8 @@ export default function History() {
         <View style={styles.group}>
           <Text style={styles.groupTitle}>MES FAITS VÉRIFIÉS</Text>
           {items.map((item, index) => {
-            const icon = item.input_type === 'image'
-              ? 'image-outline'
-              : item.input_type === 'url'
-                ? 'link-outline'
-                : 'document-text-outline';
-            const source = item.source || item.input_type.toUpperCase();
+            const icon = item.input_type === 'url' ? 'link-outline' : 'document-text-outline';
+            const source = item.source || 'TEXTE';
             const time = new Date(item.created_at).toLocaleTimeString('fr-FR', {
               hour: '2-digit',
               minute: '2-digit',
