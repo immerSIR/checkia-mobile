@@ -18,7 +18,7 @@ export const timeAgo = (dateStr: string) => {
 
 export const getVerdictUI = (verdict: string) => {
   switch (verdict) {
-    case 'VRAI': return { label: 'VÉRIFIÉ - VRAI', color: P.vrai, bg: P.vraiBg, icon: 'checkmark' as any };
+    case 'VRAI': return { label: 'VÉRIFIÉ · VRAI', color: P.vrai, bg: P.vraiBg, icon: 'checkmark-circle' as any };
     case 'FAUX': return { label: 'FAUX', color: P.faux, bg: P.fauxBg, icon: 'close' as any };
     default:     return { label: 'DOUTEUX', color: P.douteux, bg: P.douteuxBg, icon: 'alert' as any };
   }

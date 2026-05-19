@@ -7,7 +7,6 @@ export default function TabsLayout() {
     <Tabs screenOptions={{
       headerShown: false,
       tabBarHideOnKeyboard: false, // STABLE : Ne bouge jamais, même avec le clavier
-      tabBarSafeAreaInsets: { bottom: 0 }, // STABLE : Ignore les zones de sécurité système qui font varier la hauteur
       tabBarStyle: {
         backgroundColor: Colors.card,
         borderTopColor: Colors.border,

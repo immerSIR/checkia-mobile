@@ -1,20 +1,19 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-export const API_URL = 'https://1ea4-41-73-98-4.ngrok-free.app/api';
+const DEFAULT_API_URL = 'http://localhost:8000/api';
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
 
+export const API_URL = configuredApiUrl || DEFAULT_API_URL;
 
 export const api = axios.create({ baseURL: API_URL });
-console.log('🔗 API_URL =', API_URL);
 
-// Injection automatique du token JWT
 api.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Appels
 export const factCheckAPI = {
   submit: (data: { input_type: string; raw_input: string }) =>
     api.post('/fact-check/', data),
