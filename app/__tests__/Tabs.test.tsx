@@ -8,7 +8,7 @@ import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import HomeScreen from '../(tabs)/index';
 import LearnScreen from '../(tabs)/learn';
 import VerifyScreen from '../(tabs)/verify';
-import { factCheckAPI, imageVerificationAPI } from '../../services/api';
+import { factCheckAPI, imageVerificationAPI, contentAPI, authAPI } from '../../services/api';
 import { useRouter } from 'expo-router';
 
 // Mocks
@@ -18,6 +18,12 @@ jest.mock('../../services/api', () => ({
   },
   imageVerificationAPI: {
     getHistory: jest.fn(),
+  },
+  contentAPI: {
+    getFacts: jest.fn(),
+  },
+  authAPI: {
+    getSession: jest.fn(),
   },
 }));
 
@@ -33,6 +39,8 @@ jest.mock('../../hooks/useVerify', () => ({
     loading: false,
     texte: '',
     setTexte: jest.fn(),
+    source: '',
+    setSource: jest.fn(),
     canAnalyze: () => true,
     handleAnalyze: jest.fn(),
     ctaLabel: () => 'Analyser',
@@ -47,6 +55,8 @@ describe('Tab Screens', () => {
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (factCheckAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
     (imageVerificationAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
+    (authAPI.getSession as jest.Mock).mockResolvedValue(null);
+    (contentAPI.getFacts as jest.Mock).mockResolvedValue({ data: [] });
   });
 
   describe('HomeScreen', () => {
@@ -64,10 +74,28 @@ describe('Tab Screens', () => {
   });
 
   describe('LearnScreen', () => {
-    it('affiche le titre et les fiches', () => {
+    it('affiche le titre et la section faits vérifiés', async () => {
       const { getByText } = render(<LearnScreen />);
       expect(getByText(/Apprendre à/)).toBeTruthy();
-      expect(getByText('Toutes les fiches')).toBeTruthy();
+      await waitFor(() => {
+        expect(getByText('Faits vérifiés')).toBeTruthy();
+      });
+    });
+
+    it("invite à se connecter quand l'utilisateur n'a pas de session", async () => {
+      (authAPI.getSession as jest.Mock).mockResolvedValue(null);
+      const { findByText } = render(<LearnScreen />);
+      expect(await findByText(/Connectez-vous pour voir/)).toBeTruthy();
+    });
+
+    it('charge les faits via contentAPI quand connecté', async () => {
+      (authAPI.getSession as jest.Mock).mockResolvedValue({ access_token: 'tok' });
+      (contentAPI.getFacts as jest.Mock).mockResolvedValue({
+        data: [{ id: 1, texte: 'Le ciel est bleu', source: 'https://example.com/a' }],
+      });
+      const { findByText } = render(<LearnScreen />);
+      expect(await findByText('Le ciel est bleu')).toBeTruthy();
+      expect(contentAPI.getFacts).toHaveBeenCalled();
     });
   });
 

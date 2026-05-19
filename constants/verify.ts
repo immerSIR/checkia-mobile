@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 
-export type Tab = 'Texte' | 'URL' | 'Image' | 'Audio';
+export type Tab = 'Texte' | 'Image' | 'Audio';
 export type ImageMode = 'ia' | 'identite' | null;
 export type AudioMode = 'transcription' | 'voix-ia' | 'fact-check';
 
@@ -12,7 +12,6 @@ export type VerifyTabItem = {
 
 export const TABS: VerifyTabItem[] = [
   { key: 'Texte', icon: 'reorder-three-outline', label: 'Texte' },
-  { key: 'URL', icon: 'link-outline', label: 'URL' },
   { key: 'Image', icon: 'image-outline', label: 'Image' },
   { key: 'Audio', icon: 'mic-outline', label: 'Audio' },
 ];

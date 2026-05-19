@@ -24,9 +24,9 @@ describe('Constants Integrity', () => {
   });
 
   describe('Verify Constants', () => {
-    it('TABS doit contenir 4 onglets', () => {
-      expect(TABS).toHaveLength(4);
-      expect(TABS.map(t => t.key)).toEqual(['Texte', 'URL', 'Image', 'Audio']);
+    it('TABS doit contenir 3 onglets (Texte, Image, Audio)', () => {
+      expect(TABS).toHaveLength(3);
+      expect(TABS.map(t => t.key)).toEqual(['Texte', 'Image', 'Audio']);
     });
 
     it('ANALYSIS_STEPS doit avoir 5 étapes', () => {

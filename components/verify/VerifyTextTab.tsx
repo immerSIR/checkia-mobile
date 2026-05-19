@@ -6,9 +6,11 @@ import { P } from '../../constants/colors';
 type Props = {
   texte: string;
   setTexte: (value: string) => void;
+  source: string;
+  setSource: (value: string) => void;
 };
 
-export default function VerifyTextTab({ texte, setTexte }: Props) {
+export default function VerifyTextTab({ texte, setTexte, source, setSource }: Props) {
   return (
     <View>
       <Text style={s.sectionLabel}>— COLLEZ OU TAPEZ</Text>
@@ -40,6 +42,27 @@ export default function VerifyTextTab({ texte, setTexte }: Props) {
 
           <Text style={s.counter}>{texte.length} / 1000</Text>
         </View>
+      </View>
+
+      <Text style={s.sectionLabel}>— SOURCE (OPTIONNEL)</Text>
+
+      <View style={s.urlInputWrap}>
+        <Ionicons name="link-outline" size={16} color={P.muted} style={s.urlIcon} />
+        <TextInput
+          style={s.urlInput}
+          placeholder="https://… URL où vous avez vu l'information"
+          placeholderTextColor={P.muted}
+          value={source}
+          onChangeText={setSource}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+        />
+        {source.length > 0 && (
+          <TouchableOpacity onPress={() => setSource('')}>
+            <Ionicons name="close-circle" size={18} color={P.muted} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <Text style={s.sectionLabel}>— OPTIONS</Text>

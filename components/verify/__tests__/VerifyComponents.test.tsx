@@ -9,7 +9,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import VerifyTabs from '../VerifyTabs';
 import VerifyNavbar from '../VerifyNavbar';
 import VerifyTextTab from '../VerifyTextTab';
-import VerifyUrlTab from '../VerifyUrlTab';
 import VerifyAudioTab from '../VerifyAudioTab';
 import VerifyImageTab from '../VerifyImageTab';
 import AnalyzingScreen from '../AnalyzingScreen';
@@ -24,11 +23,9 @@ jest.mock('@expo/vector-icons', () => ({
 jest.mock('../../../constants/verify', () => ({
   TABS: [
     { key: 'Texte', label: 'Texte', icon: 'document-text' },
-    { key: 'URL', label: 'Lien', icon: 'link' },
     { key: 'Audio', label: 'Audio', icon: 'mic' },
     { key: 'Image', label: 'Image', icon: 'image' },
   ],
-  SOURCES: ['MaliCheck', 'AFP'],
   AUDIO_OPTIONS: [
     { key: 'voix-ia', label: 'Voix', icon: 'mic', sub: 'Analyse vocale' }
   ],
@@ -50,13 +47,15 @@ jest.mock('react-native-safe-area-context', () => ({
 describe('Verify Module Components', () => {
 
   describe('VerifyTabs', () => {
-    it('affiche tous les onglets et gère le changement', () => {
+    it('affiche les trois onglets et gère le changement', () => {
       const onChangeMock = jest.fn();
-      const { getByText } = render(<VerifyTabs tab="Texte" onChange={onChangeMock} />);
+      const { getByText, queryByText } = render(<VerifyTabs tab="Texte" onChange={onChangeMock} />);
       expect(getByText('Texte')).toBeTruthy();
-      expect(getByText('Lien')).toBeTruthy();
-      fireEvent.press(getByText('Lien'));
-      expect(onChangeMock).toHaveBeenCalledWith('URL');
+      expect(getByText('Image')).toBeTruthy();
+      expect(getByText('Audio')).toBeTruthy();
+      expect(queryByText('Lien')).toBeNull();
+      fireEvent.press(getByText('Image'));
+      expect(onChangeMock).toHaveBeenCalledWith('Image');
     });
   });
 
@@ -73,39 +72,26 @@ describe('Verify Module Components', () => {
   });
 
   describe('VerifyTextTab', () => {
-    it('met à jour le texte et affiche le compteur', () => {
+    it('met à jour le texte, le compteur et la source optionnelle', () => {
       const setTexteMock = jest.fn();
+      const setSourceMock = jest.fn();
       const { getByPlaceholderText, getByText } = render(
-        <VerifyTextTab texte="Bonjour" setTexte={setTexteMock} />
+        <VerifyTextTab
+          texte="Bonjour"
+          setTexte={setTexteMock}
+          source=""
+          setSource={setSourceMock}
+        />
       );
 
-      const input = getByPlaceholderText(/Le gouvernement du Mali/);
-      fireEvent.changeText(input, 'Nouveau texte');
+      const textInput = getByPlaceholderText(/Le gouvernement du Mali/);
+      fireEvent.changeText(textInput, 'Nouveau texte');
       expect(setTexteMock).toHaveBeenCalledWith('Nouveau texte');
       expect(getByText('7 / 1000')).toBeTruthy();
-    });
-  });
 
-  describe('VerifyUrlTab', () => {
-    it('affiche les différents états (chargement, preview, warning)', () => {
-      const onChangeUrlMock = jest.fn();
-      const onClearUrlMock = jest.fn();
-      const { getByText, rerender, getByPlaceholderText } = render(
-        <VerifyUrlTab url="http://test.com" preview={null} previewLoading={true} onChangeUrl={onChangeUrlMock} onClearUrl={onClearUrlMock} />
-      );
-      expect(getByText('Chargement…')).toBeTruthy();
-
-      const input = getByPlaceholderText(/sahel-actu.com/);
-      fireEvent.changeText(input, 'new-url');
-      expect(onChangeUrlMock).toHaveBeenCalledWith('new-url');
-
-      const mockPreview = { source: 'MaliCheck', title: 'Titre', desc: 'Desc' };
-      rerender(<VerifyUrlTab url="http://test.com" preview={mockPreview} previewLoading={false} onChangeUrl={onChangeUrlMock} onClearUrl={onClearUrlMock} />);
-      expect(getByText('MALICHECK')).toBeTruthy();
-      expect(getByText('Titre')).toBeTruthy();
-
-      rerender(<VerifyUrlTab url="http://inconnu.com" preview={null} previewLoading={false} onChangeUrl={onChangeUrlMock} onClearUrl={onClearUrlMock} />);
-      expect(getByText(/n'est pas dans notre liste de sources fiables/)).toBeTruthy();
+      const sourceInput = getByPlaceholderText(/URL où vous avez vu/);
+      fireEvent.changeText(sourceInput, 'https://example.com/article');
+      expect(setSourceMock).toHaveBeenCalledWith('https://example.com/article');
     });
   });
 

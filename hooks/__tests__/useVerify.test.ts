@@ -5,17 +5,12 @@
 
 import { renderHook, act } from '@testing-library/react-native';
 import { useVerify } from '../useVerify';
-import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
-import { factCheckAPI, taskAPI, urlPreviewAPI } from '../../services/api';
+import { factCheckAPI, taskAPI } from '../../services/api';
 
 // Mocks
 jest.mock('expo-document-picker');
 jest.mock('expo-image-picker');
 jest.mock('../../services/api', () => ({
-  urlPreviewAPI: {
-    fetch: jest.fn(),
-  },
   factCheckAPI: {
     submit: jest.fn(),
     getResult: jest.fn(),
@@ -43,28 +38,11 @@ describe('useVerify Hook', () => {
   it('initialise avec les valeurs par défaut', () => {
     const { result } = renderHook(() => useVerify(mockRouter));
     expect(result.current.tab).toBe('Texte');
-  });
-
-  describe('Validation URL et Preview', () => {
-    it('déclenche le chargement de l\'aperçu après un délai', async () => {
-      (urlPreviewAPI.fetch as jest.Mock).mockResolvedValue({ data: { title: 'Test' } });
-      const { result } = renderHook(() => useVerify(mockRouter));
-
-      await act(async () => {
-        result.current.handleUrlChange('https://test.com');
-      });
-
-      // Avancer le timer de l'anti-rebond (debounce)
-      await act(async () => {
-        jest.advanceTimersByTime(800);
-      });
-
-      expect(urlPreviewAPI.fetch).toHaveBeenCalledWith('https://test.com');
-    });
+    expect(result.current.source).toBe('');
   });
 
   describe('Analyse et Redirection', () => {
-    it('gère le cycle complet de l\'analyse', async () => {
+    it('gère le cycle complet de l\'analyse texte avec source optionnelle', async () => {
       (factCheckAPI.submit as jest.Mock).mockResolvedValue({
         data: { task_id: 'task-1' },
       });
@@ -75,6 +53,7 @@ describe('useVerify Hook', () => {
 
       act(() => {
         result.current.setTexte('Info importante');
+        result.current.setSource('https://source.example/article');
       });
 
       await act(async () => {
@@ -82,7 +61,10 @@ describe('useVerify Hook', () => {
       });
 
       expect(result.current.loading).toBe(false);
-      expect(factCheckAPI.submit).toHaveBeenCalledWith({ texte: 'Info importante', source: '' });
+      expect(factCheckAPI.submit).toHaveBeenCalledWith({
+        texte: 'Info importante',
+        source: 'https://source.example/article',
+      });
       expect(mockRouter.push).toHaveBeenCalledWith('/result/1?kind=text');
     });
   });
@@ -97,12 +79,13 @@ describe('useVerify Hook', () => {
       act(() => { result.current.setTexte('Test'); });
       expect(result.current.canAnalyze()).toBe(true);
 
-      // URL
-      act(() => { result.current.setTab('URL'); });
-      act(() => { result.current.handleUrlChange(''); });
+      // Image needs both an URI and a mode
+      act(() => { result.current.setTab('Image'); });
       expect(result.current.canAnalyze()).toBe(false);
-      act(() => { result.current.handleUrlChange('http://test.com'); });
-      expect(result.current.canAnalyze()).toBe(true);
+
+      // Audio is intentionally disabled (coming soon)
+      act(() => { result.current.setTab('Audio'); });
+      expect(result.current.canAnalyze()).toBe(false);
     });
   });
 });
