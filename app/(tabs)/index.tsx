@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { P } from '../../constants/colors';
 import { s } from '../../styles/home.styles';
-import { MOCK_HISTORY, FactCheck } from '../../data/homeData';
+import { FactCheck } from '../../data/homeData';
 import { factCheckAPI } from '../../services/api';
 import { mapSubmissionToFactCheck } from '../../utils/apiMappers';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -17,8 +17,8 @@ import { HistoryRow } from '../../components/home/HistoryRow';
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useCurrentUser();
-  const [history, setHistory] = useState<FactCheck[]>(MOCK_HISTORY);
-  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState<FactCheck[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -32,9 +32,7 @@ export default function HomeScreen() {
         .map(mapSubmissionToFactCheck)
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-      if (items.length > 0) {
-        setHistory(items.slice(0, 5));
-      }
+      setHistory(items.slice(0, 5));
     } catch (e) {
       console.log(e);
     } finally {
@@ -65,6 +63,10 @@ export default function HomeScreen() {
 
         {loading ? (
           <ActivityIndicator color={P.navy} style={{ marginTop: 20 }} />
+        ) : history.length === 0 ? (
+          <Text style={{ color: P.muted, fontSize: 14, marginTop: 12, lineHeight: 21 }}>
+            Aucune vérification pour le moment. Lancez-en une depuis l'onglet Vérifier.
+          </Text>
         ) : (
           history.map((item, i) => (
             <HistoryRow
