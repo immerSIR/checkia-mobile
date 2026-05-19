@@ -1,19 +1,22 @@
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ImageMode } from '../../constants/verify';
 import { s } from '../../styles/verify.styles';
-import { P } from "../../constants/colors";
+import { P } from '../../constants/colors';
 
 type Props = {
   imageUri: string | null;
   imageMode: ImageMode;
+  imageClaim: string;
   onPickImage: () => void;
   onClearImage: () => void;
   onSelectMode: (mode: ImageMode) => void;
+  onChangeClaim: (value: string) => void;
 };
 
 export default function VerifyImageTab({
-  imageUri, imageMode, onPickImage, onClearImage, onSelectMode,
+  imageUri, imageMode, imageClaim,
+  onPickImage, onClearImage, onSelectMode, onChangeClaim,
 }: Props) {
   return (
     <View>
@@ -69,18 +72,44 @@ export default function VerifyImageTab({
         <TouchableOpacity
           style={[
             s.modeCard,
-            imageMode === 'identite' ? s.modeCardOutlineActive : s.modeCardDefault,
+            imageMode === 'content' ? s.modeCardOutlineActive : s.modeCardDefault,
           ]}
-          onPress={() => onSelectMode('identite')}
+          onPress={() => onSelectMode('content')}
           activeOpacity={0.85}
         >
-          <View style={[s.modeIconWrap, imageMode === 'identite' ? s.modeIdentityActive : s.modeIconWrapLight]}>
-            <Ionicons name="person-outline" size={20} color={P.navyDark} />
+          <View style={[s.modeIconWrap, imageMode === 'content' ? s.modeIdentityActive : s.modeIconWrapLight]}>
+            <Ionicons name="chatbubble-ellipses-outline" size={20} color={P.navyDark} />
           </View>
-          <Text style={s.modeTitle}>Identité</Text>
-          <Text style={s.modeSubMuted}>Vérifie la personne{'\n'}représentée</Text>
+          <Text style={s.modeTitle}>Vérifier le contenu</Text>
+          <Text style={s.modeSubMuted}>Vérifie une affirmation{'\n'}à propos de l'image</Text>
         </TouchableOpacity>
       </View>
+
+      {imageMode === 'content' && (
+        <View>
+          <Text style={s.sectionLabel}>— AFFIRMATION À VÉRIFIER</Text>
+          <View style={s.textareaWrap}>
+            <TextInput
+              style={s.textarea}
+              placeholder={`Ex: Cette image montre le président français\nlors de sa visite officielle…`}
+              placeholderTextColor={P.muted}
+              multiline
+              value={imageClaim}
+              onChangeText={onChangeClaim}
+              textAlignVertical="top"
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={1000}
+            />
+            <View style={s.textareaFooter}>
+              <Text style={s.counter}>{imageClaim.length} / 1000</Text>
+            </View>
+          </View>
+          <Text style={{ fontSize: 11, color: P.muted, marginTop: -4, marginBottom: 14 }}>
+            Laissez vide pour une analyse générale de l'image.
+          </Text>
+        </View>
+      )}
 
       <View style={s.confidentialRow}>
         <Ionicons name="shield-checkmark-outline" size={15} color={P.navy} />

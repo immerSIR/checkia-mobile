@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 
 export type Tab = 'Texte' | 'Image';
-export type ImageMode = 'ia' | 'identite' | null;
+export type ImageMode = 'ia' | 'content' | null;
 
 export type VerifyTabItem = {
   key: Tab;

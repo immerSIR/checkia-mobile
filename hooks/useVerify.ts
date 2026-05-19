@@ -13,6 +13,7 @@ export function useVerify(router: any) {
   const [source, setSource] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageMode, setImageMode] = useState<ImageMode>(null);
+  const [imageClaim, setImageClaim] = useState('');
 
   const canAnalyze = () => {
     if (tab === 'Texte') return texte.trim().length > 0;
@@ -34,6 +35,7 @@ export function useVerify(router: any) {
   const clearImage = () => {
     setImageUri(null);
     setImageMode(null);
+    setImageClaim('');
   };
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -135,7 +137,7 @@ export function useVerify(router: any) {
       if (tab === 'Image' && imageUri) {
         const response = imageMode === 'ia'
           ? await imageVerificationAPI.detectAI(imageUri)
-          : await imageVerificationAPI.verifyContent(imageUri, texte.trim());
+          : await imageVerificationAPI.verifyContent(imageUri, imageClaim.trim());
         const result = await pollImageTask(response.data.task_id);
         const id = result.verification_id;
         router.push(`/result/${id}?kind=image`);
@@ -156,6 +158,7 @@ export function useVerify(router: any) {
   return {
     tab, setTab, loading, setLoading, step, setStep, error, setError, texte, setTexte,
     source, setSource, imageUri, imageMode, setImageMode,
+    imageClaim, setImageClaim,
     pickImage, clearImage,
     canAnalyze, handleAnalyze, ctaLabel,
   };

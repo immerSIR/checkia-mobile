@@ -95,22 +95,40 @@ describe('Verify Module Components', () => {
       const onPickImageMock = jest.fn();
       const onSelectModeMock = jest.fn();
 
-      const { getByText, rerender } = render(
-        <VerifyImageTab imageUri={null} imageMode="ia" onPickImage={onPickImageMock} onClearImage={() => {}} onSelectMode={onSelectModeMock} />
+      const onChangeClaimMock = jest.fn();
+      const baseProps = {
+        imageUri: null as string | null,
+        imageMode: 'ia' as const,
+        imageClaim: '',
+        onPickImage: onPickImageMock,
+        onClearImage: () => {},
+        onSelectMode: onSelectModeMock,
+        onChangeClaim: onChangeClaimMock,
+      };
+      const { getByText, getByPlaceholderText, rerender, queryByPlaceholderText } = render(
+        <VerifyImageTab {...baseProps} />
       );
 
       fireEvent.press(getByText('Appuyer pour choisir'));
       expect(onPickImageMock).toHaveBeenCalled();
 
+      // AI mode does not show a claim textarea
+      expect(queryByPlaceholderText(/Cette image montre/)).toBeNull();
+
       rerender(
-        <VerifyImageTab imageUri="uri" imageMode="identite" onPickImage={onPickImageMock} onClearImage={() => {}} onSelectMode={onSelectModeMock} />
+        <VerifyImageTab {...baseProps} imageUri="uri" imageMode="content" />
       );
 
       fireEvent.press(getByText('Générée par IA ?'));
       expect(onSelectModeMock).toHaveBeenCalledWith('ia');
 
-      fireEvent.press(getByText('Identité'));
-      expect(onSelectModeMock).toHaveBeenCalledWith('identite');
+      fireEvent.press(getByText('Vérifier le contenu'));
+      expect(onSelectModeMock).toHaveBeenCalledWith('content');
+
+      // Content mode shows a claim textarea
+      const claimInput = getByPlaceholderText(/Cette image montre/);
+      fireEvent.changeText(claimInput, 'Affirmation à vérifier');
+      expect(onChangeClaimMock).toHaveBeenCalledWith('Affirmation à vérifier');
     });
   });
 

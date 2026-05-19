@@ -56,9 +56,11 @@ export default function Verify() {
               <VerifyImageTab
                 imageUri={vm.imageUri}
                 imageMode={vm.imageMode}
+                imageClaim={vm.imageClaim}
                 onPickImage={vm.pickImage}
                 onClearImage={vm.clearImage}
                 onSelectMode={vm.setImageMode}
+                onChangeClaim={vm.setImageClaim}
               />
             )}
 
