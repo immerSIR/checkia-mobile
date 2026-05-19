@@ -1,6 +1,6 @@
 /**
  * @file History.test.tsx
- * @description Tests pour la page d'historique.
+ * @description Tests pour l'écran "Faits vérifiés" (anciennement Historique).
  */
 
 import React from 'react';
@@ -22,7 +22,7 @@ jest.mock('../../services/api', () => ({
   },
 }));
 
-describe('History Screen', () => {
+describe('History Screen (verified-only)', () => {
   const mockRouter = { push: jest.fn(), back: jest.fn() };
 
   beforeEach(() => {
@@ -37,38 +37,53 @@ describe('History Screen', () => {
           date: '2026-03-12T10:27:00Z',
           source: '',
         },
+        {
+          id: 2,
+          texte: 'Une information rejetée',
+          statut: 'rejeté',
+          date: '2026-03-11T09:00:00Z',
+          source: '',
+        },
+        {
+          id: 3,
+          texte: 'Une information en cours',
+          statut: 'en cours',
+          date: '2026-03-10T08:00:00Z',
+          source: '',
+        },
       ],
     });
     (imageVerificationAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
   });
 
-  it('rend correctement les titres et le résumé', async () => {
+  it('rend le titre et le sous-titre alignés sur la Library', async () => {
     const { getByText, getByTestId } = render(<History />);
 
     await waitFor(() => {
-      expect(getByText('HISTORIQUE')).toBeTruthy();
+      expect(getByText('FAITS VÉRIFIÉS')).toBeTruthy();
       expect(getByTestId('history-count')).toBeTruthy();
-      expect(getByText(/vérifications/)).toBeTruthy();
+      expect(getByText(/faits vérifiés/)).toBeTruthy();
     });
   });
 
-  it('affiche les éléments backend', async () => {
-    const { getByText } = render(<History />);
+  it('n\'affiche que les soumissions vérifiées (filtre verdict VRAI)', async () => {
+    const { getByText, queryByText } = render(<History />);
 
     await waitFor(() => {
-      expect(getByText('VÉRIFICATIONS RÉCENTES')).toBeTruthy();
       expect(getByText('Référendum constitutionnel Mali juin 2026')).toBeTruthy();
-      expect(getByText('TEXTE')).toBeTruthy();
     });
+
+    expect(queryByText('Une information rejetée')).toBeNull();
+    expect(queryByText('Une information en cours')).toBeNull();
   });
 
-  it('affiche les puces de filtrage', async () => {
-    const { getByText } = render(<History />);
+  it('n\'affiche plus les puces de filtrage par verdict', async () => {
+    const { queryByText } = render(<History />);
 
     await waitFor(() => {
-      expect(getByText('Tout : 1')).toBeTruthy();
-      expect(getByText('Vraies : 1')).toBeTruthy();
-      expect(getByText('Fausses : 0')).toBeTruthy();
+      expect(queryByText(/Fausses :/)).toBeNull();
+      expect(queryByText(/À nuancer :/)).toBeNull();
+      expect(queryByText(/Tout :/)).toBeNull();
     });
   });
 
@@ -88,5 +103,14 @@ describe('History Screen', () => {
     const { getByTestId } = render(<History />);
     fireEvent.press(getByTestId('back-button'));
     expect(mockRouter.back).toHaveBeenCalled();
+  });
+
+  it('affiche un état vide quand aucun fait n\'est vérifié', async () => {
+    (factCheckAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
+    const { getByText } = render(<History />);
+
+    await waitFor(() => {
+      expect(getByText(/Aucun fait vérifié pour le moment/)).toBeTruthy();
+    });
   });
 });
