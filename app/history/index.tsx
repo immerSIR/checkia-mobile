@@ -1,6 +1,10 @@
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { FactCheck } from '../../data/homeData';
+import { factCheckAPI, imageVerificationAPI } from '../../services/api';
+import { mapImageToFactCheck, mapSubmissionToFactCheck } from '../../utils/apiMappers';
 
 const palette = {
   bg: '#F7F3E9',
@@ -114,6 +118,60 @@ function verdictStyle(verdict: string) {
 
 export default function History() {
   const router = useRouter();
+  const [items, setItems] = useState<FactCheck[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      setLoading(true);
+      try {
+        const [submissions, imageVerifications] = await Promise.all([
+          factCheckAPI.getHistory(),
+          imageVerificationAPI.getHistory().catch(() => ({ data: [] })),
+        ]);
+        setItems([
+          ...submissions.data.map(mapSubmissionToFactCheck),
+          ...imageVerifications.data.map(mapImageToFactCheck),
+        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, []);
+
+  const summary = {
+    total: items.length,
+    vrai: items.filter((item) => item.verdict === 'VRAI').length,
+    faux: items.filter((item) => item.verdict === 'FAUX').length,
+    douteux: items.filter((item) => item.verdict === 'DOUTEUX').length,
+  };
+
+  const filters = [
+    { key: 'Tout', label: `Tout : ${summary.total}`, bg: palette.navyChip, color: '#FFFFFF' },
+    { key: 'VRAI', label: `Vraies : ${summary.vrai}`, bg: '#CFE0D2', color: palette.green },
+    { key: 'FAUX', label: `Fausses : ${summary.faux}`, bg: '#E7CACA', color: palette.red },
+    { key: 'DOUTEUX', label: `À nuancer : ${summary.douteux}`, bg: '#E9D59D', color: '#8A6713' },
+  ];
+
+  const navigateToResult = (item: FactCheck) => {
+    if (String(item.id).startsWith('image-')) {
+      router.push(`/result/${String(item.id).replace('image-', '')}?kind=image`);
+    } else {
+      router.push(`/result/${item.id}?kind=text`);
+    }
+  };
+
+  const formatPeriod = () => {
+    if (items.length === 0) return 'Aucune vérification synchronisée.';
+    const dates = items.map((item) => new Date(item.created_at).getTime()).filter(Boolean);
+    if (dates.length === 0) return 'Dates indisponibles.';
+    const start = new Date(Math.min(...dates));
+    const end = new Date(Math.max(...dates));
+    const fmt = (date: Date) => date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+    return `Du ${fmt(start)} au ${fmt(end)}.`;
+  };
 
   return (
     <ScrollView
@@ -140,9 +198,9 @@ export default function History() {
 
       <View style={styles.hero}>
         <Text style={styles.heroTitle} testID="history-count">
-          24 <Text style={styles.heroItalic}>vérifications.</Text>
+          {summary.total} <Text style={styles.heroItalic}>vérifications.</Text>
         </Text>
-        <Text style={styles.heroSub}>Du 4 février au 12 mars 2026.</Text>
+        <Text style={styles.heroSub}>{formatPeriod()}</Text>
       </View>
 
       <ScrollView
@@ -150,7 +208,7 @@ export default function History() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.filters}
       >
-        {FILTERS.map((filter) => (
+        {filters.map((filter) => (
           <TouchableOpacity
             key={filter.key}
             style={[styles.filterChip, { backgroundColor: filter.bg }]}
@@ -167,39 +225,50 @@ export default function History() {
         </View>
       </ScrollView>
 
-      {GROUPS.map((group) => (
-        <View key={group.title} style={styles.group}>
-          <Text style={styles.groupTitle}>{group.title}</Text>
-
-          {group.items.map((item, index) => {
+      {loading ? (
+        <ActivityIndicator color={palette.accent} style={{ marginTop: 24 }} />
+      ) : (
+        <View style={styles.group}>
+          <Text style={styles.groupTitle}>VÉRIFICATIONS RÉCENTES</Text>
+          {items.map((item, index) => {
             const verdict = verdictStyle(item.verdict);
+            const icon = item.input_type === 'image'
+              ? 'image-outline'
+              : item.input_type === 'url'
+                ? 'link-outline'
+                : 'document-text-outline';
+            const source = item.source || item.input_type.toUpperCase();
+            const time = new Date(item.created_at).toLocaleTimeString('fr-FR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
 
             return (
               <TouchableOpacity
                 key={item.id}
                 style={[
                   styles.row,
-                  index !== group.items.length - 1 && styles.rowBorder,
+                  index !== items.length - 1 && styles.rowBorder,
                 ]}
                 activeOpacity={0.85}
-                onPress={() => router.push(`/result/${item.id}`)}
+                onPress={() => navigateToResult(item)}
               >
                 <View style={styles.rowTop}>
                   <View style={styles.metaLeft}>
-                    <View style={[styles.metaDot, { backgroundColor: item.dot }]} />
+                    <View style={[styles.metaDot, { backgroundColor: verdict.color }]} />
                     <Ionicons
-                      name={item.icon as any}
+                      name={icon as any}
                       size={12}
                       color={palette.ink4}
                       style={{ marginRight: 6 }}
                     />
-                    <Text style={styles.source}>{item.source}</Text>
+                    <Text style={styles.source}>{source.toUpperCase()}</Text>
                   </View>
 
-                  <Text style={styles.time}>{item.time}</Text>
+                  <Text style={styles.time}>{time}</Text>
                 </View>
 
-                <Text style={styles.itemTitle}>{item.title}</Text>
+                <Text style={styles.itemTitle}>{item.raw_input}</Text>
 
                 <View style={styles.bottomLine}>
                   <View style={[styles.verdictBadge, { backgroundColor: verdict.bg }]}>
@@ -209,13 +278,13 @@ export default function History() {
                     </Text>
                   </View>
 
-                  <Text style={styles.score}>{item.score}%</Text>
+                  <Text style={styles.score}>{item.score ?? 0}%</Text>
                 </View>
               </TouchableOpacity>
             );
           })}
         </View>
-      ))}
+      )}
     </ScrollView>
   );
 }

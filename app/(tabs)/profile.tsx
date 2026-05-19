@@ -8,6 +8,7 @@ import { P } from '../../constants/colors';
 import { s } from '../../styles/profile.styles';
 import { HomeStats } from '../../components/home/HomeStats';
 import { MenuRow } from '../../components/profile/MenuRow';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '../../services/api';
 
 const MENU = [
   { icon: 'notifications-outline', label: 'Notifications', value: 'Activées' },
@@ -23,7 +24,8 @@ export default function Profile() {
   const stats = { suivi: 24, vrai: 18, faux: 6 };
 
   const handleLogout = async () => {
-    await SecureStore.deleteItemAsync('token');
+    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     router.replace('/(auth)/login');
   };
 

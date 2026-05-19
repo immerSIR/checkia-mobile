@@ -233,6 +233,18 @@ export const s = StyleSheet.create({
   },
   ctaDisabled: { opacity: 0.35 },
   ctaText: { color: P.white, fontSize: 14, fontWeight: '700', letterSpacing: 0.2 },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#F8E4E4',
+    borderWidth: 1,
+    borderColor: '#E7B8B8',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+  },
+  errorText: { flex: 1, color: P.danger, fontSize: 12, lineHeight: 18 },
 });
 
 export const as = StyleSheet.create({

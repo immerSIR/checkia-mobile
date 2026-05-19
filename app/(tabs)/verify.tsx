@@ -82,6 +82,13 @@ export default function Verify() {
               />
             )}
 
+            {!!vm.error && (
+              <View style={s.errorBanner}>
+                <Ionicons name="alert-circle-outline" size={16} color={P.danger} />
+                <Text style={s.errorText}>{vm.error}</Text>
+              </View>
+            )}
+
             <TouchableOpacity
               style={[s.cta, !vm.canAnalyze() && s.ctaDisabled]}
               onPress={vm.handleAnalyze}

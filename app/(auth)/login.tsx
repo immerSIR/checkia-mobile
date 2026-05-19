@@ -10,7 +10,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Input }  from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors } from '../../constants/colors';
-import { authAPI } from '../../services/api';
+import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, authAPI } from '../../services/api';
 
 export default function Login() {
   const router = useRouter();
@@ -21,7 +21,6 @@ export default function Login() {
   const [error,    setError]    = useState('');
 
   const handleLogin = async () => {
-    console.log('🚀 Tentative login:', username, password);
     if (!username || !password) {
       setError('Veuillez remplir tous les champs.');
       return;
@@ -29,16 +28,20 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      console.log('📡 Appel API vers:', `${authAPI}/auth/token/`);
       const { data } = await authAPI.login(username, password);
-      await SecureStore.setItemAsync('token', data.access);
-      await SecureStore.setItemAsync('refresh_token', data.refresh);
+      const accessToken = data.access_token ?? data.access;
+      const refreshToken = data.refresh_token ?? data.refresh;
+
+      if (!accessToken) {
+        throw new Error('Aucun jeton reçu du serveur.');
+      }
+
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+      if (refreshToken) {
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+      }
       router.replace('/(tabs)');
     } catch (err: any) {
-      // Affiche l'erreur exacte dans la console Expo
-      console.log('STATUS:', err.response?.status);
-      console.log('DATA:', JSON.stringify(err.response?.data));
-      console.log('MESSAGE:', err.message);
       if (err.response?.status === 401) {
         setError('username ou mot de passe incorrect.');
       } else {

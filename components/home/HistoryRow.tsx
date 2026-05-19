@@ -18,6 +18,11 @@ export const HistoryRow = ({ item, isLast, onPress }: any) => {
   const ui = getVerdictUI(item.verdict);
   const icon = getHistoryIcon(item);
   const domain = item.source || 'benbere.com';
+  const verdictText = item.verdict === 'VRAI'
+    ? '✓ VRAI'
+    : item.verdict === 'FAUX'
+      ? '× FAUX'
+      : ui.label;
 
   return (
     <TouchableOpacity style={[s.listItem, !isLast && s.listBorder]} onPress={onPress}>
@@ -28,7 +33,7 @@ export const HistoryRow = ({ item, isLast, onPress }: any) => {
       <View style={s.listBody}>
         <View style={[s.pill, { backgroundColor: ui.bg }]}>
           <Text style={[s.pillText, { color: ui.color }]}>
-            {ui.label === 'FAUX' ? '× FAUX' : '✓ ' + ui.label}
+            {verdictText}
           </Text>
         </View>
 

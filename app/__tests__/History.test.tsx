@@ -4,13 +4,22 @@
  */
 
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import History from '../history/index';
 import { useRouter } from 'expo-router';
+import { factCheckAPI, imageVerificationAPI } from '../../services/api';
 
-// Mock expo-router
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
+}));
+
+jest.mock('../../services/api', () => ({
+  factCheckAPI: {
+    getHistory: jest.fn(),
+  },
+  imageVerificationAPI: {
+    getHistory: jest.fn(),
+  },
 }));
 
 describe('History Screen', () => {
@@ -19,38 +28,60 @@ describe('History Screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
+    (factCheckAPI.getHistory as jest.Mock).mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          texte: 'Référendum constitutionnel Mali juin 2026',
+          statut: 'vérifié',
+          date: '2026-03-12T10:27:00Z',
+          source: '',
+        },
+      ],
+    });
+    (imageVerificationAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
   });
 
-  it('rend correctement les titres et le résumé', () => {
+  it('rend correctement les titres et le résumé', async () => {
     const { getByText, getByTestId } = render(<History />);
 
-    expect(getByText('HISTORIQUE')).toBeTruthy();
-    expect(getByTestId('history-count')).toBeTruthy();
-    expect(getByText(/Du 4 février au 12 mars 2026/)).toBeTruthy();
+    await waitFor(() => {
+      expect(getByText('HISTORIQUE')).toBeTruthy();
+      expect(getByTestId('history-count')).toBeTruthy();
+      expect(getByText(/vérifications/)).toBeTruthy();
+    });
   });
 
-  it('affiche les groupes de dates et les éléments', () => {
+  it('affiche les éléments backend', async () => {
     const { getByText } = render(<History />);
 
-    expect(getByText("AUJOURD'HUI · 12 MAR")).toBeTruthy();
-    expect(getByText("Référendum constitutionnel Mali juin 2026")).toBeTruthy();
-    expect(getByText("BENBERE.COM")).toBeTruthy();
+    await waitFor(() => {
+      expect(getByText('VÉRIFICATIONS RÉCENTES')).toBeTruthy();
+      expect(getByText('Référendum constitutionnel Mali juin 2026')).toBeTruthy();
+      expect(getByText('TEXTE')).toBeTruthy();
+    });
   });
 
-  it('affiche les puces de filtrage', () => {
+  it('affiche les puces de filtrage', async () => {
     const { getByText } = render(<History />);
 
-    expect(getByText('Tout : 24')).toBeTruthy();
-    expect(getByText('Vraies : 18')).toBeTruthy();
-    expect(getByText('Fausses : 6')).toBeTruthy();
+    await waitFor(() => {
+      expect(getByText('Tout : 1')).toBeTruthy();
+      expect(getByText('Vraies : 1')).toBeTruthy();
+      expect(getByText('Fausses : 0')).toBeTruthy();
+    });
   });
 
-  it('navigue vers le résultat lors d\'un clic sur une ligne', () => {
+  it('navigue vers le résultat lors d\'un clic sur une ligne', async () => {
     const { getByText } = render(<History />);
 
-    fireEvent.press(getByText("Référendum constitutionnel Mali juin 2026"));
+    await waitFor(() => {
+      expect(getByText('Référendum constitutionnel Mali juin 2026')).toBeTruthy();
+    });
 
-    expect(mockRouter.push).toHaveBeenCalledWith('/result/1');
+    fireEvent.press(getByText('Référendum constitutionnel Mali juin 2026'));
+
+    expect(mockRouter.push).toHaveBeenCalledWith('/result/1?kind=text');
   });
 
   it('retourne en arrière lors du clic sur le bouton retour', () => {
