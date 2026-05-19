@@ -6,11 +6,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 import { Input }  from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors } from '../../constants/colors';
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, authAPI } from '../../services/api';
+import { authAPI } from '../../services/api';
 
 export default function Login() {
   const router = useRouter();
@@ -28,24 +27,16 @@ export default function Login() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await authAPI.login(username, password);
-      const accessToken = data.access_token ?? data.access;
-      const refreshToken = data.refresh_token ?? data.refresh;
-
-      if (!accessToken) {
-        throw new Error('Aucun jeton reçu du serveur.');
-      }
-
-      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-      if (refreshToken) {
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+      const { data } = await authAPI.login(username.trim(), password);
+      if (!data.session?.access_token) {
+        throw new Error('Aucune session reçue de Supabase.');
       }
       router.replace('/(tabs)');
     } catch (err: any) {
-      if (err.response?.status === 401) {
-        setError('username ou mot de passe incorrect.');
+      if (err.status === 400 || err.status === 401) {
+        setError('Adresse e-mail ou mot de passe incorrect.');
       } else {
-        setError('Erreur réseau. Vérifiez votre connexion.');
+        setError(err.message || 'Erreur réseau. Vérifiez votre connexion.');
       }
     } finally {
       setLoading(false);

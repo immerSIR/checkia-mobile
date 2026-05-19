@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Input }  from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors } from '../../constants/colors';
-import { api }    from '../../services/api';
+import { authAPI } from '../../services/api';
 
 type Step = 'email' | 'sent';
 
@@ -33,7 +33,7 @@ export default function ForgotPassword() {
     setLoading(true);
     setError('');
     try {
-      await api.post('/auth/password-reset/', { email });
+      await authAPI.resetPassword(email.trim());
       setStep('sent');
     } catch (err: any) {
       // On affiche toujours "envoyé" pour ne pas révéler si l'email existe

@@ -1,23 +1,21 @@
 // app/_layout.tsx
-import { useEffect, useState } from 'react';
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as SecureStore from 'expo-secure-store';
-import { Colors } from '../constants/colors';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { onAuthRequired } from '../services/api';
 
 export default function RootLayout() {
-  const [token, setToken] = useState<string | null>(null);
-  const [checked, setChecked] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    SecureStore.getItemAsync('token').then((t) => {
-      setToken(t);
-      setChecked(true);
+    const unsubscribe = onAuthRequired(() => {
+      router.replace('/(auth)/login');
     });
-  }, []);
-
-  if (!checked) return null;
+    return () => {
+      unsubscribe();
+    };
+  }, [router]);
 
   return (
     <SafeAreaProvider>

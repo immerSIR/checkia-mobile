@@ -20,7 +20,7 @@ cp .env.example .env
 npm start
 ```
 
-Set `EXPO_PUBLIC_API_URL` in `.env` to a backend API you control. Do not commit `.env` files or tunnel URLs.
+Set `EXPO_PUBLIC_BACKEND_URL`, `EXPO_PUBLIC_SUPABASE_URL`, and `EXPO_PUBLIC_SUPABASE_ANON_KEY` in `.env` to services you control. Do not commit `.env` files, tunnel URLs, or private keys.
 
 Use Node.js 20.19.4 or newer. Node 22 LTS is recommended and is used by CI.
 

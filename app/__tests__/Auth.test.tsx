@@ -9,8 +9,7 @@ import Onboarding from '../(auth)/onboarding';
 import Login from '../(auth)/login';
 import Register from '../(auth)/register';
 import ForgotPassword from '../(auth)/forgot-password';
-import { authAPI, api } from '../../services/api';
-import * as SecureStore from 'expo-secure-store';
+import { authAPI } from '../../services/api';
 import { useRouter } from 'expo-router';
 
 // Mocks
@@ -18,14 +17,9 @@ jest.mock('../../services/api', () => ({
   authAPI: {
     login: jest.fn(),
     register: jest.fn(),
+    getSession: jest.fn(),
+    resetPassword: jest.fn(),
   },
-  api: {
-    post: jest.fn(),
-  },
-}));
-
-jest.mock('expo-secure-store', () => ({
-  setItemAsync: jest.fn(),
 }));
 
 jest.mock('expo-router', () => ({
@@ -53,7 +47,7 @@ describe('Auth Module', () => {
   describe('Login', () => {
     it('gère une connexion réussie', async () => {
       (authAPI.login as jest.Mock).mockResolvedValue({
-        data: { access: 'tk', refresh: 'rf' }
+        data: { session: { access_token: 'tk' } }
       });
       const { getByPlaceholderText, getByText } = render(<Login />);
 
@@ -70,6 +64,8 @@ describe('Auth Module', () => {
 
   describe('Register', () => {
     it('valide les champs et accepte les CGU', async () => {
+      (authAPI.register as jest.Mock).mockResolvedValue({ data: { user: { id: 'u1' } } });
+      (authAPI.getSession as jest.Mock).mockResolvedValue({ access_token: 'tk' });
       const { getByText, getByPlaceholderText } = render(<Register />);
 
       fireEvent.changeText(getByPlaceholderText('Ibrahima'), 'Jean');
@@ -96,7 +92,7 @@ describe('Auth Module', () => {
       fireEvent.press(getByText('Envoyer le lien'));
 
       await waitFor(() => {
-        expect(api.post).toHaveBeenCalledWith('/auth/password-reset/', { email: 'test@test.com' });
+        expect(authAPI.resetPassword).toHaveBeenCalledWith('test@test.com');
         expect(getByTestId('sent-title')).toBeTruthy();
       });
     });

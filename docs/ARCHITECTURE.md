@@ -30,33 +30,39 @@ Routes live in `app/` and are grouped by user flow:
 
 ## API Layer
 
-`services/api.ts` creates the Axios client and exports API modules for authentication, fact-checking, image verification, task polling, and local URL preview metadata.
+`services/supabase.ts` creates the Supabase client and persists Supabase Auth sessions in `expo-secure-store`. `services/api.ts` creates the Axios client and exports API modules for authentication, fact-checking, image verification, task polling, public content, and local URL preview metadata.
 
-The base URL comes from:
+The backend base URL comes from:
 
 ```text
-EXPO_PUBLIC_API_URL
+EXPO_PUBLIC_BACKEND_URL
 ```
 
-This value is required outside tests. The service layer trims whitespace and trailing slashes before passing the URL to Axios.
+`EXPO_PUBLIC_API_URL` is accepted for older local environments and normalized back to the backend root when it ends in `/api`.
 
-The Axios request interceptor reads the JWT token from `expo-secure-store` and adds an `Authorization` header when a token is available.
+Supabase Auth reads:
+
+```text
+EXPO_PUBLIC_SUPABASE_URL
+EXPO_PUBLIC_SUPABASE_ANON_KEY
+```
+
+The Axios request interceptor reads the active Supabase session through the SDK and adds `Authorization: Bearer <supabase_jwt>` when a token is available. On a 401 response, it asks Supabase to refresh the session, retries the request once, and signs the user out if the retry cannot be authorized.
+
+Authentication uses Supabase SDK methods (`signUp`, `signInWithPassword`, `signOut`). The app must not call backend `/api/auth/*` proxy endpoints.
 
 Current backend routes used by the app:
 
-- `POST /auth/login/`
-- `POST /auth/register/`
-- `GET /auth/user/`
-- `POST /auth/logout/`
-- `POST /submissions/`
-- `GET /submissions/`
-- `GET /submissions/{id}/`
-- `POST /detect-ai-image/`
-- `POST /verify-image-content/`
-- `GET /image-verifications/`
-- `GET /task-status/{taskId}/`
+- `POST /api/submissions/`
+- `GET /api/task-status/{taskId}/`
+- `GET /api/user-submissions/`
+- `POST /api/detect-ai-image/`
+- `POST /api/verify-image-content/`
+- `GET /api/image-verifications/`
+- `GET /api/facts/`
+- `GET /api/keywords/`
 
-Text and URL submissions poll `/submissions/{id}/` until the backend status leaves `en cours`. Image submissions poll `/task-status/{taskId}/` until the asynchronous image verification returns a final result.
+Text and URL submissions poll `/api/task-status/{taskId}/` until the backend status leaves `en cours`. Image submissions poll the same task endpoint until the asynchronous image verification returns a final result. API code preserves backend French status strings (`en cours`, `vérifié`, `rejeté`) and maps them to UI copy only in `utils/apiMappers.ts`.
 
 ## Testing
 

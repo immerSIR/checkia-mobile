@@ -51,15 +51,14 @@ export default function Register() {
       await authAPI.register({
         first_name: firstName,
         last_name:  lastName,
+        country: pays,
         email,
         password,
       });
-      router.replace('/(auth)/login');
+      const session = await authAPI.getSession();
+      router.replace(session ? '/(tabs)' : '/(auth)/login');
     } catch (err: any) {
-      const msg = err.response?.data?.email?.[0]
-               || err.response?.data?.detail
-               || err.response?.data?.error
-               || 'Une erreur est survenue.';
+      const msg = err.message || 'Une erreur est survenue.';
       setError(msg);
     } finally {
       setLoading(false);
