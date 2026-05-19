@@ -35,9 +35,7 @@ export default function Article() {
 
         <Text style={s.headerTitle}>FICHE N°01</Text>
 
-        <TouchableOpacity style={s.circleBtn}>
-          <Ionicons name="bookmark-outline" size={16} color={P.text} />
-        </TouchableOpacity>
+        <View style={s.circleBtnSpacer} />
       </View>
 
       <ScrollView
@@ -106,18 +104,6 @@ export default function Article() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* ── Barre d'actions fixe ── */}
-      <View style={s.actionBar}>
-        <TouchableOpacity style={s.btnSecondary} activeOpacity={0.8}>
-          <Ionicons name="share-outline" size={16} color={P.text} />
-          <Text style={s.btnSecondaryText}>Partager</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={s.btnPrimary} activeOpacity={0.85}>
-          <Text style={s.btnPrimaryText}>Continuer</Text>
-          <Ionicons name="arrow-forward" size={16} color={P.white} />
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -144,6 +130,9 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: P.line,
     backgroundColor: P.surface,
     alignItems: 'center', justifyContent: 'center',
+  },
+  circleBtnSpacer: {
+    width: 34, height: 34,
   },
   headerTitle: {
     fontSize: 11, fontWeight: '700',

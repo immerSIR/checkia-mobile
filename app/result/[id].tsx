@@ -2,7 +2,7 @@
 import {
   ActivityIndicator,
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, SafeAreaView, StatusBar,
+  ScrollView, SafeAreaView, StatusBar, Share, Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,6 +80,22 @@ export default function ResultScreen() {
     RESULT?.verdict === 'FAUX'   ? 'warning' :
     'hourglass-outline';
 
+  const handleShare = async () => {
+    if (!RESULT) return;
+    try {
+      await Share.share({
+        message: `Check-IA · ${RESULT.statusChip}\n\n"${RESULT.claim}"\n\n${RESULT.statusDescription}`,
+      });
+    } catch {
+      // user dismissed
+    }
+  };
+
+  const openSource = (url?: string) => {
+    if (!url) return;
+    Linking.openURL(url).catch(() => {});
+  };
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={P.bg} />
@@ -96,9 +112,7 @@ export default function ResultScreen() {
         <Text style={s.headerMeta}>
           {RESULT ? `Rapport N°${RESULT.rapportNum} · ${RESULT.date}` : 'Rapport'}
         </Text>
-        <TouchableOpacity style={s.circleBtn}>
-          <Ionicons name="share-outline" size={16} color={P.text} />
-        </TouchableOpacity>
+        <View style={s.circleBtnSpacer} />
       </View>
 
       <ScrollView
@@ -190,13 +204,16 @@ export default function ResultScreen() {
             <Text style={s.sourceDesc}>Aucune source externe disponible pour ce rapport.</Text>
           ) : RESULT.sources.map((src, i) => (
             <View key={`${src.name}-${i}`}>
-              <TouchableOpacity style={s.sourceRow} activeOpacity={0.75}>
-                {/* Icône ✓ vert */}
+              <TouchableOpacity
+                style={s.sourceRow}
+                activeOpacity={0.75}
+                onPress={() => openSource(src.url)}
+                disabled={!src.url}
+              >
                 <View style={[s.sourceCheck, { backgroundColor: P.greenLight }]}>
                   <Ionicons name="checkmark" size={13} color={verdictColor} />
                 </View>
 
-                {/* Texte */}
                 <View style={s.sourceText}>
                   <Text style={[s.sourceName, { color: verdictColor }]}>
                     {src.name}
@@ -206,10 +223,11 @@ export default function ResultScreen() {
                   </Text>
                 </View>
 
-                {/* Date + chevron */}
                 <View style={s.sourceRight}>
                   <Text style={s.sourceDate}>{src.date}</Text>
-                  <Ionicons name="chevron-forward" size={13} color={P.muted} />
+                  {src.url ? (
+                    <Ionicons name="open-outline" size={13} color={P.muted} />
+                  ) : null}
                 </View>
               </TouchableOpacity>
 
@@ -234,17 +252,18 @@ export default function ResultScreen() {
       </ScrollView>
 
       {/* ── Barre d'actions fixe en bas ── */}
-      <View style={s.actionBar}>
-        <TouchableOpacity style={s.btnSecondary} activeOpacity={0.8}>
-          <Ionicons name="share-outline" size={16} color={P.text} />
-          <Text style={s.btnSecondaryText}>Partager</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={s.btnPrimary} activeOpacity={0.85}>
-          <Ionicons name="bookmark-outline" size={16} color={P.white} />
-          <Text style={s.btnPrimaryText}>Sauvegarder</Text>
-        </TouchableOpacity>
-      </View>
+      {RESULT && (
+        <View style={s.actionBar}>
+          <TouchableOpacity
+            style={s.btnPrimary}
+            activeOpacity={0.85}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-outline" size={16} color={P.white} />
+            <Text style={s.btnPrimaryText}>Partager le rapport</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -282,6 +301,9 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: P.line,
     backgroundColor: P.surface,
     alignItems: 'center', justifyContent: 'center',
+  },
+  circleBtnSpacer: {
+    width: 34, height: 34,
   },
   headerMeta: {
     fontSize: 11, fontWeight: '600',
