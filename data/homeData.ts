@@ -58,4 +58,3 @@ export const MOCK_HISTORY: FactCheck[] = [
   },
 ];
 
-export const MOCK_STATS = { vrai: 18, suivi: 24, faux: 6 };

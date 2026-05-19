@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { P } from '../../constants/colors';
 import { s } from '../../styles/profile.styles';
-import { HomeStats } from '../../components/home/HomeStats';
 import { MenuRow } from '../../components/profile/MenuRow';
 import { authAPI } from '../../services/api';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -21,8 +20,6 @@ const MENU = [
 export default function Profile() {
   const router = useRouter();
   const { user } = useCurrentUser();
-
-  const stats = { suivi: 24, vrai: 18, faux: 6 };
 
   const handleLogout = async () => {
     await authAPI.logout();
@@ -56,26 +53,9 @@ export default function Profile() {
                 <Text style={s.location}>{user.country}</Text>
               </View>
             ) : null}
-            <View style={s.verifiedBadge}>
-              <Text style={s.verifiedText}>VÉRIFIÉ · VRAI</Text>
-            </View>
+            {user.email ? <Text style={s.location}>{user.email}</Text> : null}
           </View>
         </View>
-
-        <HomeStats stats={stats} />
-
-        <TouchableOpacity style={s.streakCard} activeOpacity={0.9}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <View style={s.streakIconWrap}>
-              <Ionicons name="flame" size={18} color="#B8680A" />
-            </View>
-            <View>
-              <Text style={s.streakEyebrow}>SÉRIE</Text>
-              <Text style={s.streakTitle}>12 jours consécutifs</Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={P.muted} />
-        </TouchableOpacity>
 
         <Text style={s.sectionLabel}>— PARAMÈTRES</Text>
         <View style={{ marginBottom: 20 }}>
