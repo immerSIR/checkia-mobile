@@ -9,7 +9,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import VerifyTabs from '../VerifyTabs';
 import VerifyNavbar from '../VerifyNavbar';
 import VerifyTextTab from '../VerifyTextTab';
-import VerifyAudioTab from '../VerifyAudioTab';
 import VerifyImageTab from '../VerifyImageTab';
 import AnalyzingScreen from '../AnalyzingScreen';
 import VerifyLoadingModal from '../VerifyLoadingModal';
@@ -23,11 +22,7 @@ jest.mock('@expo/vector-icons', () => ({
 jest.mock('../../../constants/verify', () => ({
   TABS: [
     { key: 'Texte', label: 'Texte', icon: 'document-text' },
-    { key: 'Audio', label: 'Audio', icon: 'mic' },
     { key: 'Image', label: 'Image', icon: 'image' },
-  ],
-  AUDIO_OPTIONS: [
-    { key: 'voix-ia', label: 'Voix', icon: 'mic', sub: 'Analyse vocale' }
   ],
   ANALYSIS_STEPS: [
     { label: 'Etape 1', sub: 'Sub 1', badge: 'En cours' },
@@ -47,12 +42,12 @@ jest.mock('react-native-safe-area-context', () => ({
 describe('Verify Module Components', () => {
 
   describe('VerifyTabs', () => {
-    it('affiche les trois onglets et gère le changement', () => {
+    it('affiche Texte et Image et gère le changement (pas d\'Audio, alignement web)', () => {
       const onChangeMock = jest.fn();
       const { getByText, queryByText } = render(<VerifyTabs tab="Texte" onChange={onChangeMock} />);
       expect(getByText('Texte')).toBeTruthy();
       expect(getByText('Image')).toBeTruthy();
-      expect(getByText('Audio')).toBeTruthy();
+      expect(queryByText('Audio')).toBeNull();
       expect(queryByText('Lien')).toBeNull();
       fireEvent.press(getByText('Image'));
       expect(onChangeMock).toHaveBeenCalledWith('Image');
@@ -92,39 +87,6 @@ describe('Verify Module Components', () => {
       const sourceInput = getByPlaceholderText(/URL où vous avez vu/);
       fireEvent.changeText(sourceInput, 'https://example.com/article');
       expect(setSourceMock).toHaveBeenCalledWith('https://example.com/article');
-    });
-  });
-
-  describe('VerifyAudioTab', () => {
-    it('gère l\'enregistrement et l\'importation', () => {
-      const onToggleRecordingMock = jest.fn();
-      const onPickAudioMock = jest.fn();
-      const onSelectModeMock = jest.fn();
-
-      const { getByText, rerender, getByTestId } = render(
-        <VerifyAudioTab
-          audioUri={null} audioName={null} audioMode="voix-ia" isRecording={false}
-          onPickAudio={onPickAudioMock} onClearAudio={() => {}} onToggleRecording={onToggleRecordingMock} onSelectMode={onSelectModeMock}
-        />
-      );
-
-      fireEvent.press(getByTestId('record-button'));
-      expect(onToggleRecordingMock).toHaveBeenCalled();
-
-      fireEvent.press(getByTestId('import-audio-button'));
-      expect(onPickAudioMock).toHaveBeenCalled();
-
-      fireEvent.press(getByText('Voix'));
-      expect(onSelectModeMock).toHaveBeenCalledWith('voix-ia');
-
-      rerender(
-        <VerifyAudioTab
-          audioUri="uri" audioName="test.mp3" audioMode="voix-ia" isRecording={true}
-          onPickAudio={onPickAudioMock} onClearAudio={() => {}} onToggleRecording={onToggleRecordingMock} onSelectMode={onSelectModeMock}
-        />
-      );
-      expect(getByText(/enregistrement en cours/)).toBeTruthy();
-      expect(getByText('test.mp3')).toBeTruthy();
     });
   });
 

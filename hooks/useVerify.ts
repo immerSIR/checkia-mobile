@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
-import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { BackendStatus, factCheckAPI, imageVerificationAPI, Submission, taskAPI, TaskStatusResponse } from '../services/api';
-import { ANALYSIS_STEPS, AudioMode, ImageMode, Tab } from '../constants/verify';
+import { ANALYSIS_STEPS, ImageMode, Tab } from '../constants/verify';
 
 export function useVerify(router: any) {
   const analysisTimerRef = useRef<any>(null);
@@ -14,15 +13,10 @@ export function useVerify(router: any) {
   const [source, setSource] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageMode, setImageMode] = useState<ImageMode>(null);
-  const [audioUri, setAudioUri] = useState<string | null>(null);
-  const [audioName, setAudioName] = useState<string | null>(null);
-  const [audioMode, setAudioMode] = useState<AudioMode>('transcription');
-  const [isRecording, setIsRecording] = useState(false);
 
   const canAnalyze = () => {
     if (tab === 'Texte') return texte.trim().length > 0;
     if (tab === 'Image') return imageUri !== null && imageMode !== null;
-    if (tab === 'Audio') return false;
     return false;
   };
 
@@ -41,28 +35,6 @@ export function useVerify(router: any) {
     setImageUri(null);
     setImageMode(null);
   };
-
-  const pickAudio = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/wav', 'audio/*'],
-        copyToCacheDirectory: true,
-      });
-      if (!result.canceled && result.assets.length > 0) {
-        setAudioUri(result.assets[0].uri);
-        setAudioName(result.assets[0].name);
-      }
-    } catch (err) {
-      console.log('Erreur sélection audio:', err);
-    }
-  };
-
-  const clearAudio = () => {
-    setAudioUri(null);
-    setAudioName(null);
-  };
-
-  const toggleRecording = () => setIsRecording((v) => !v);
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -178,15 +150,13 @@ export function useVerify(router: any) {
 
   const ctaLabel = () => {
     if (tab === 'Texte') return 'Analyser ce texte';
-    if (tab === 'Audio') return 'Audio bientôt disponible';
     return "Lancer l'analyse";
   };
 
   return {
     tab, setTab, loading, setLoading, step, setStep, error, setError, texte, setTexte,
-    source, setSource, imageUri, imageMode, audioUri, audioName,
-    audioMode, isRecording, setImageMode, setAudioMode,
-    pickImage, clearImage, pickAudio, clearAudio, toggleRecording,
+    source, setSource, imageUri, imageMode, setImageMode,
+    pickImage, clearImage,
     canAnalyze, handleAnalyze, ctaLabel,
   };
 }

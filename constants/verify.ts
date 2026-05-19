@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 
-export type Tab = 'Texte' | 'Image' | 'Audio';
+export type Tab = 'Texte' | 'Image';
 export type ImageMode = 'ia' | 'identite' | null;
-export type AudioMode = 'transcription' | 'voix-ia' | 'fact-check';
 
 export type VerifyTabItem = {
   key: Tab;
@@ -13,7 +12,6 @@ export type VerifyTabItem = {
 export const TABS: VerifyTabItem[] = [
   { key: 'Texte', icon: 'reorder-three-outline', label: 'Texte' },
   { key: 'Image', icon: 'image-outline', label: 'Image' },
-  { key: 'Audio', icon: 'mic-outline', label: 'Audio' },
 ];
 
 export const ANALYSIS_STEPS = [
@@ -65,23 +63,3 @@ export const SOURCES = [
   'ActuMali',
 ];
 
-export const AUDIO_OPTIONS = [
-  {
-    key: 'transcription' as AudioMode,
-    icon: 'reorder-three-outline' as keyof typeof Ionicons.glyphMap,
-    label: 'Transcription',
-    sub: "Convertit l'audio en texte vérifiable",
-  },
-  {
-    key: 'voix-ia' as AudioMode,
-    icon: 'settings-outline' as keyof typeof Ionicons.glyphMap,
-    label: 'Voix IA ?',
-    sub: 'Détecte si la voix est synthétisée',
-  },
-  {
-    key: 'fact-check' as AudioMode,
-    icon: 'chatbubble-ellipses-outline' as keyof typeof Ionicons.glyphMap,
-    label: 'Fact-check audio',
-    sub: "Analyse les affirmations dans l'audio",
-  },
-];

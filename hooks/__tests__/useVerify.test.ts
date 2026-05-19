@@ -8,7 +8,6 @@ import { useVerify } from '../useVerify';
 import { factCheckAPI, taskAPI } from '../../services/api';
 
 // Mocks
-jest.mock('expo-document-picker');
 jest.mock('expo-image-picker');
 jest.mock('../../services/api', () => ({
   factCheckAPI: {
@@ -81,10 +80,6 @@ describe('useVerify Hook', () => {
 
       // Image needs both an URI and a mode
       act(() => { result.current.setTab('Image'); });
-      expect(result.current.canAnalyze()).toBe(false);
-
-      // Audio is intentionally disabled (coming soon)
-      act(() => { result.current.setTab('Audio'); });
       expect(result.current.canAnalyze()).toBe(false);
     });
   });
