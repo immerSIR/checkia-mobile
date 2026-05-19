@@ -147,7 +147,7 @@ export const factCheckAPI = {
   submit: (data: { texte: string; source?: string }) =>
     api.post<SubmissionCreated>('/api/submissions/', data),
   getResult: (id: string | number) =>
-    api.get<Submission[]>('/api/user-submissions/').then((response) => {
+    api.get<Submission[]>('/api/submissions/').then((response) => {
       const submission = response.data.find((item) => String(item.id) === String(id));
       if (!submission) {
         throw new Error('Résultat introuvable.');
@@ -155,7 +155,7 @@ export const factCheckAPI = {
       return { ...response, data: submission };
     }),
   getHistory: () =>
-    api.get<Submission[]>('/api/user-submissions/'),
+    api.get<Submission[]>('/api/submissions/'),
 };
 
 export const imageVerificationAPI = {
