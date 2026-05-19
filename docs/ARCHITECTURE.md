@@ -23,13 +23,14 @@ Routes live in `app/` and are grouped by user flow:
 ## Data and State
 
 - `hooks/useVerify.ts` owns local state and actions for the verification screen.
-- `data/` contains static and mock data used by current screens.
+- `utils/apiMappers.ts` maps backend submissions and image verification records into shared view models for history and result screens.
+- `data/` contains static learning content and fallback UI data used by current screens.
 - `constants/` contains theme values and feature constants.
 - `utils/` contains testable helper functions.
 
 ## API Layer
 
-`services/api.ts` creates the Axios client and exports API modules for authentication, fact-checking, and URL previews.
+`services/api.ts` creates the Axios client and exports API modules for authentication, fact-checking, image verification, task polling, and local URL preview metadata.
 
 The base URL comes from:
 
@@ -37,9 +38,25 @@ The base URL comes from:
 EXPO_PUBLIC_API_URL
 ```
 
-When this value is absent, the app uses `http://localhost:8000/api` for local development.
+This value is required outside tests. The service layer trims whitespace and trailing slashes before passing the URL to Axios.
 
 The Axios request interceptor reads the JWT token from `expo-secure-store` and adds an `Authorization` header when a token is available.
+
+Current backend routes used by the app:
+
+- `POST /auth/login/`
+- `POST /auth/register/`
+- `GET /auth/user/`
+- `POST /auth/logout/`
+- `POST /submissions/`
+- `GET /submissions/`
+- `GET /submissions/{id}/`
+- `POST /detect-ai-image/`
+- `POST /verify-image-content/`
+- `GET /image-verifications/`
+- `GET /task-status/{taskId}/`
+
+Text and URL submissions poll `/submissions/{id}/` until the backend status leaves `en cours`. Image submissions poll `/task-status/{taskId}/` until the asynchronous image verification returns a final result.
 
 ## Testing
 

@@ -4,15 +4,24 @@ import * as SecureStore from 'expo-secure-store';
 export const ACCESS_TOKEN_KEY = 'token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
 
-const DEFAULT_API_URL = 'http://localhost:8000/api';
+const TEST_API_URL = 'http://localhost:8000/api';
 
-const normalizeApiUrl = (value?: string) => {
-  const trimmed = value?.trim();
-  if (!trimmed) return DEFAULT_API_URL;
-  return trimmed.replace(/\/+$/, '');
+const normalizeApiUrl = (value: string) => value.trim().replace(/\/+$/, '');
+
+const getApiUrl = () => {
+  const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+  if (configuredApiUrl) {
+    return normalizeApiUrl(configuredApiUrl);
+  }
+
+  if (process.env.NODE_ENV === 'test') {
+    return TEST_API_URL;
+  }
+
+  throw new Error('Missing EXPO_PUBLIC_API_URL. Set it in .env to the Check-IA backend API base URL.');
 };
 
-export const API_URL = normalizeApiUrl(process.env.EXPO_PUBLIC_API_URL);
+export const API_URL = getApiUrl();
 
 export const api = axios.create({ baseURL: API_URL });
 

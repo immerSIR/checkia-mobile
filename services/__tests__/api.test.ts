@@ -26,12 +26,17 @@ jest.mock('expo-secure-store', () => ({
 }));
 
 // On importe les APIs après le mock d'axios
-import { api, factCheckAPI } from '../api';
+import { API_URL, api, factCheckAPI } from '../api';
 
 describe('API Services', () => {
   const mockApi = api as any;
 
   // Pas de clearAllMocks ici car l'intercepteur est enregistré à l'import du module
+
+  it('utilise la configuration API attendue en environnement de test', () => {
+    expect(API_URL).toBe('http://localhost:8000/api');
+    expect(axios.create).toHaveBeenCalledWith({ baseURL: API_URL });
+  });
 
   it('doit configurer l\'intercepteur de requête', () => {
     // Dans le code source, api.interceptors.request.use est appelé à l'initialisation

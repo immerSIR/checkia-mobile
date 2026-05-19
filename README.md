@@ -4,16 +4,17 @@ Check-IA Mobile is an Expo and React Native app for AI-assisted fact-checking wo
 
 The app currently includes:
 
-- Authentication screens for login, registration, onboarding, and password recovery.
-- A home dashboard with recent verification history and summary stats.
-- Verification flows for text, URLs, images, and audio files.
-- URL preview support through the backend API.
+- Authentication screens for login and registration backed by the API, with tokens stored in `expo-secure-store`.
+- A home dashboard with synchronized text, URL, and image verification history.
+- Verification flows for text, URLs, and images, including polling for asynchronous backend results.
+- Audio verification UI scaffolding for a future backend workflow.
+- Local URL preview metadata derived from the submitted URL.
 - A learning area with media literacy articles and categories.
 - Jest and React Native Testing Library coverage for UI components, hooks, helpers, and API services.
 
 ## Project Status
 
-This repository is being prepared as an open-source mobile client. Some verification flows are currently mocked or partially integrated while backend services are finalized. Contributions should keep user-facing copy clear for French-speaking audiences and avoid adding hard-coded private service URLs or credentials.
+This repository is being prepared as an open-source mobile client. Text, URL, authentication, and image verification flows now call the backend API. Audio verification and third-party sign-in remain UI placeholders until compatible backend services are available. Contributions should keep user-facing copy clear for French-speaking audiences and avoid adding hard-coded private service URLs or credentials.
 
 ## Tech Stack
 
@@ -51,7 +52,7 @@ Create your local environment file:
 cp .env.example .env
 ```
 
-Update `.env` with the backend API URL for your local or hosted Check-IA API:
+Update `.env` with the backend API URL for your local or hosted Check-IA API. The app requires this value at runtime:
 
 ```bash
 EXPO_PUBLIC_API_URL=http://localhost:8000/api
@@ -84,13 +85,9 @@ npm run typecheck  # Run the TypeScript compiler without emitting files
 
 ## Configuration
 
-The app reads its backend URL from `EXPO_PUBLIC_API_URL`.
+The app reads its backend URL from `EXPO_PUBLIC_API_URL`. This value is required outside the Jest test environment, and trailing slashes are normalized before Axios creates the client.
 
-If the variable is not set, the app falls back to:
-
-```text
-http://localhost:8000/api
-```
+For physical device testing, `localhost` points to the device, not your development machine. Use a LAN IP address or a tunnel URL that you control.
 
 Do not commit `.env`, ngrok tunnel URLs, production API keys, signing keys, certificates, provisioning profiles, or other private deployment material.
 
