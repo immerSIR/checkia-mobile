@@ -63,7 +63,7 @@ export default function HomeScreen() {
             <Text style={s.sectionCount}>{history.length}</Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/history')}>
-            <Text style={s.sectionLink}>Tout voir</Text>
+            <Text style={s.sectionLink}>Faits vérifiés</Text>
           </TouchableOpacity>
         </View>
 
