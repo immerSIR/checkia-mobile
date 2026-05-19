@@ -53,7 +53,7 @@ describe('Home Module Components', () => {
       const { getByText } = render(<HistoryRow item={mockItem} isLast={false} onPress={() => {}} />);
       expect(getByText('https://test.com')).toBeTruthy();
       expect(getByText('95%')).toBeTruthy();
-      expect(getByText('VRAI')).toBeTruthy();
+      expect(getByText('✓ VRAI')).toBeTruthy();
     });
 
     it('appelle onPress lors du clic sur la ligne', () => {

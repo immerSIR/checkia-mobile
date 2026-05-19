@@ -19,7 +19,7 @@ export const HistoryRow = ({ item, isLast, onPress }: any) => {
   const icon = getHistoryIcon(item);
   const domain = item.source || 'benbere.com';
   const verdictText = item.verdict === 'VRAI'
-    ? 'VRAI'
+    ? '✓ VRAI'
     : item.verdict === 'FAUX'
       ? '× FAUX'
       : ui.label;
