@@ -56,6 +56,6 @@ describe('API Services', () => {
     mockApi.get.mockClear();
     mockApi.get.mockResolvedValue({ data: [] });
     await factCheckAPI.getHistory();
-    expect(mockApi.get).toHaveBeenCalledWith('/fact-check/history/');
+    expect(mockApi.get).toHaveBeenCalledWith('/submissions/');
   });
 });

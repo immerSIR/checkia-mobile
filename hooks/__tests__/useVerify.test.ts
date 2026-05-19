@@ -7,7 +7,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useVerify } from '../useVerify';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { urlPreviewAPI } from '../../services/api';
+import { factCheckAPI, urlPreviewAPI } from '../../services/api';
 
 // Mocks
 jest.mock('expo-document-picker');
@@ -15,6 +15,17 @@ jest.mock('expo-image-picker');
 jest.mock('../../services/api', () => ({
   urlPreviewAPI: {
     fetch: jest.fn(),
+  },
+  factCheckAPI: {
+    submit: jest.fn(),
+    getResult: jest.fn(),
+  },
+  imageVerificationAPI: {
+    detectAI: jest.fn(),
+    verifyContent: jest.fn(),
+  },
+  taskAPI: {
+    getStatus: jest.fn(),
   },
 }));
 
@@ -53,6 +64,12 @@ describe('useVerify Hook', () => {
 
   describe('Analyse et Redirection', () => {
     it('gère le cycle complet de l\'analyse', async () => {
+      (factCheckAPI.submit as jest.Mock).mockResolvedValue({
+        data: { id: 1, statut: 'en cours', texte: 'Info importante', date: new Date().toISOString() },
+      });
+      (factCheckAPI.getResult as jest.Mock).mockResolvedValue({
+        data: { id: 1, statut: 'vérifié', texte: 'Info importante', date: new Date().toISOString() },
+      });
       const { result } = renderHook(() => useVerify(mockRouter));
 
       act(() => {
@@ -60,18 +77,12 @@ describe('useVerify Hook', () => {
       });
 
       await act(async () => {
-        result.current.handleAnalyze();
-      });
-
-      expect(result.current.loading).toBe(true);
-
-      // Simuler la fin de l'intervalle d'analyse
-      await act(async () => {
-        jest.runAllTimers();
+        await result.current.handleAnalyze();
       });
 
       expect(result.current.loading).toBe(false);
-      expect(mockRouter.push).toHaveBeenCalledWith('/result/1');
+      expect(factCheckAPI.submit).toHaveBeenCalledWith({ texte: 'Info importante', source: '' });
+      expect(mockRouter.push).toHaveBeenCalledWith('/result/1?kind=text');
     });
   });
 

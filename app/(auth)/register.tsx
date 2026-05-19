@@ -7,7 +7,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
 import { Input }  from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Colors } from '../../constants/colors';
@@ -49,19 +48,17 @@ export default function Register() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await authAPI.register({
+      await authAPI.register({
         first_name: firstName,
         last_name:  lastName,
         email,
         password,
-        pays,
       });
-      await SecureStore.setItemAsync('token',         data.access);
-      await SecureStore.setItemAsync('refresh_token', data.refresh);
-      router.replace('/(tabs)');
+      router.replace('/(auth)/login');
     } catch (err: any) {
       const msg = err.response?.data?.email?.[0]
                || err.response?.data?.detail
+               || err.response?.data?.error
                || 'Une erreur est survenue.';
       setError(msg);
     } finally {

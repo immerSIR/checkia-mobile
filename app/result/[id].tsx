@@ -1,10 +1,14 @@
 // app/result/[id].tsx
 import {
+  ActivityIndicator,
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, SafeAreaView, StatusBar,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
+import { factCheckAPI, imageVerificationAPI } from '../../services/api';
+import { ResultViewModel, mapImageToResult, mapSubmissionToResult } from '../../utils/apiMappers';
 
 // ── Palette exacte storyboard ─────────────────────
 const P = {
@@ -27,42 +31,43 @@ const P = {
   warningLine:'#E8C97A',
 };
 
-// ── Données mock ──────────────────────────────────
-const RESULT = {
-  verdict:    'VRAI' as 'VRAI' | 'FAUX' | 'DOUTEUX',
-  rapportNum: '024',
-  date:       '12 MAR 2026',
-  score:      87,
-  scoreLabel: 'ÉLEVÉ',
-  claim:      '« Le Mali va organiser un référendum constitutionnel en juin 2026 pour adopter une nouvelle constitution. »',
-  analyse:    "Cette information est confirmée par ",
-  analyseBold:"3 sources de fact-checking du Sahel",
-  analyseEnd: ". Le décret présidentiel a été publié le 12 mars 2026 au Journal Officiel.",
-  sources: [
-    {
-      name: 'benbere.com',
-      date: '12 mars 2026',
-      desc: 'Le décret N°2026-154 fixe la date du référendum au 21 juin.',
-    },
-    {
-      name: 'voixdemopti.com',
-      date: '10 mars 2026',
-      desc: 'Préparatifs déjà engagés dans les régions.',
-    },
-    {
-      name: 'AFP Fact Check',
-      date: '11 mars 2026',
-      desc: 'Information confirmée par deux sources gouvernementales.',
-    },
-  ],
-};
-
 export default function ResultScreen() {
   const router = useRouter();
+  const { id, kind } = useLocalSearchParams<{ id: string; kind?: string }>();
+  const [result, setResult] = useState<ResultViewModel | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadResult = async () => {
+      if (!id) return;
+      setLoading(true);
+      setError('');
+      try {
+        if (kind === 'image') {
+          const { data } = await imageVerificationAPI.getHistory();
+          const verification = data.find((item) => String(item.id) === String(id));
+          if (!verification) throw new Error('Résultat image introuvable.');
+          setResult(mapImageToResult(verification));
+        } else {
+          const { data } = await factCheckAPI.getResult(id);
+          setResult(mapSubmissionToResult(data));
+        }
+      } catch (err: any) {
+        setError(err.message || 'Impossible de charger ce rapport.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadResult();
+  }, [id, kind]);
+
+  const RESULT = result;
 
   const verdictColor =
-    RESULT.verdict === 'VRAI'   ? P.green   :
-    RESULT.verdict === 'FAUX'   ? P.red     :
+    RESULT?.verdict === 'VRAI'   ? P.green   :
+    RESULT?.verdict === 'FAUX'   ? P.red     :
     P.warning;
 
   return (
@@ -79,7 +84,7 @@ export default function ResultScreen() {
           <Ionicons name="arrow-back" size={16} color={P.text} />
         </TouchableOpacity>
         <Text style={s.headerMeta}>
-          Rapport N°{RESULT.rapportNum} · {RESULT.date}
+          {RESULT ? `Rapport N°${RESULT.rapportNum} · ${RESULT.date}` : 'Rapport'}
         </Text>
         <TouchableOpacity style={s.circleBtn}>
           <Ionicons name="share-outline" size={16} color={P.text} />
@@ -91,6 +96,22 @@ export default function ResultScreen() {
         contentContainerStyle={s.content}
         showsVerticalScrollIndicator={false}
       >
+        {loading && (
+          <View style={s.stateBox}>
+            <ActivityIndicator color={P.navy} />
+            <Text style={s.stateText}>Chargement du rapport…</Text>
+          </View>
+        )}
+
+        {!!error && !loading && (
+          <View style={s.disclaimer}>
+            <Ionicons name="warning-outline" size={15} color={P.warning} />
+            <Text style={s.disclaimerText}>{error}</Text>
+          </View>
+        )}
+
+        {!loading && RESULT && (
+          <>
         {/* ── Barre de confiance (visible au scroll) ── */}
         <View style={s.scoreSection}>
           <View style={s.scoreRow}>
@@ -127,9 +148,7 @@ export default function ResultScreen() {
         {/* ── L'analyse ── */}
         <Text style={s.sectionLabel}>— L'ANALYSE</Text>
         <Text style={s.analyseText}>
-          {RESULT.analyse}
-          <Text style={s.analyseBold}>{RESULT.analyseBold}</Text>
-          {RESULT.analyseEnd}
+          {RESULT.analysis}
         </Text>
 
         {/* ── Sources croisées ── */}
@@ -137,8 +156,10 @@ export default function ResultScreen() {
           — SOURCES CROISÉES · {RESULT.sources.length}
         </Text>
         <View style={s.sourcesList}>
-          {RESULT.sources.map((src, i) => (
-            <View key={src.name}>
+          {RESULT.sources.length === 0 ? (
+            <Text style={s.sourceDesc}>Aucune source externe disponible pour ce rapport.</Text>
+          ) : RESULT.sources.map((src, i) => (
+            <View key={`${src.name}-${i}`}>
               <TouchableOpacity style={s.sourceRow} activeOpacity={0.75}>
                 {/* Icône ✓ vert */}
                 <View style={[s.sourceCheck, { backgroundColor: P.greenLight }]}>
@@ -178,6 +199,8 @@ export default function ResultScreen() {
         </View>
 
         <View style={{ height: 100 }} />
+          </>
+        )}
       </ScrollView>
 
       {/* ── Barre d'actions fixe en bas ── */}
@@ -201,6 +224,17 @@ const s = StyleSheet.create({
   safe:    { flex: 1, backgroundColor: P.bg },
   scroll:  { flex: 1 },
   content: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 24 },
+  stateBox: {
+    minHeight: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  stateText: {
+    fontSize: 13,
+    color: P.muted,
+    fontWeight: '600',
+  },
 
   // Header
   header: {

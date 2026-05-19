@@ -8,12 +8,15 @@ import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import HomeScreen from '../(tabs)/index';
 import LearnScreen from '../(tabs)/learn';
 import VerifyScreen from '../(tabs)/verify';
-import { factCheckAPI } from '../../services/api';
+import { factCheckAPI, imageVerificationAPI } from '../../services/api';
 import { useRouter } from 'expo-router';
 
 // Mocks
 jest.mock('../../services/api', () => ({
   factCheckAPI: {
+    getHistory: jest.fn(),
+  },
+  imageVerificationAPI: {
     getHistory: jest.fn(),
   },
 }));
@@ -43,11 +46,12 @@ describe('Tab Screens', () => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (factCheckAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
+    (imageVerificationAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
   });
 
   describe('HomeScreen', () => {
     it('charge et affiche l\'historique', async () => {
-      const mockData = [{ id: '1', input_type: 'text', raw_input: 'Test info', created_at: new Date().toISOString() }];
+      const mockData = [{ id: '1', texte: 'Test info', statut: 'vérifié', date: new Date().toISOString() }];
       (factCheckAPI.getHistory as jest.Mock).mockResolvedValue({ data: mockData });
 
       const { getByText } = render(<HomeScreen />);
