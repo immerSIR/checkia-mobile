@@ -227,12 +227,3 @@ export const contentAPI = {
   getKeywords: () => api.get('/api/keywords/'),
 };
 
-export const urlPreviewAPI = {
-  fetch: async (url: string) => ({
-    data: {
-      source: new URL(url).hostname,
-      title: url,
-      desc: '',
-    },
-  }),
-};

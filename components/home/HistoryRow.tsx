@@ -46,11 +46,13 @@ export const HistoryRow = ({ item, isLast, onPress }: any) => {
         </Text>
       </View>
 
-      <View style={{ justifyContent: 'flex-end', paddingBottom: 2 }}>
-        <Text style={[s.score, { color: P.muted }]}>
-          {item.score || 87}%
-        </Text>
-      </View>
+      {typeof item.score === 'number' && (
+        <View style={{ justifyContent: 'flex-end', paddingBottom: 2 }}>
+          <Text style={[s.score, { color: P.muted }]}>
+            {item.score}%
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };

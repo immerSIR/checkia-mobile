@@ -4,12 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AnalyzingScreen from '../../components/verify/AnalyzingScreen';
-import VerifyAudioTab from '../../components/verify/VerifyAudioTab';
 import VerifyImageTab from '../../components/verify/VerifyImageTab';
 import VerifyNavbar from '../../components/verify/VerifyNavbar';
 import VerifyTabs from '../../components/verify/VerifyTabs';
 import VerifyTextTab from '../../components/verify/VerifyTextTab';
-import VerifyUrlTab from '../../components/verify/VerifyUrlTab';
 import { useVerify } from '../../hooks/useVerify';
 import { s } from '../../styles/verify.styles';
 import { P } from '../../constants/colors';
@@ -46,16 +44,11 @@ export default function Verify() {
             <VerifyTabs tab={vm.tab} onChange={vm.setTab} />
 
             {vm.tab === 'Texte' && (
-              <VerifyTextTab texte={vm.texte} setTexte={vm.setTexte} />
-            )}
-
-            {vm.tab === 'URL' && (
-              <VerifyUrlTab
-                url={vm.url}
-                preview={vm.preview}
-                previewLoading={vm.previewLoading}
-                onChangeUrl={vm.handleUrlChange}
-                onClearUrl={vm.clearUrl}
+              <VerifyTextTab
+                texte={vm.texte}
+                setTexte={vm.setTexte}
+                source={vm.source}
+                setSource={vm.setSource}
               />
             )}
 
@@ -63,22 +56,11 @@ export default function Verify() {
               <VerifyImageTab
                 imageUri={vm.imageUri}
                 imageMode={vm.imageMode}
+                imageClaim={vm.imageClaim}
                 onPickImage={vm.pickImage}
                 onClearImage={vm.clearImage}
                 onSelectMode={vm.setImageMode}
-              />
-            )}
-
-            {vm.tab === 'Audio' && (
-              <VerifyAudioTab
-                audioUri={vm.audioUri}
-                audioName={vm.audioName}
-                audioMode={vm.audioMode}
-                isRecording={vm.isRecording}
-                onPickAudio={vm.pickAudio}
-                onClearAudio={vm.clearAudio}
-                onToggleRecording={vm.toggleRecording}
-                onSelectMode={vm.setAudioMode}
+                onChangeClaim={vm.setImageClaim}
               />
             )}
 

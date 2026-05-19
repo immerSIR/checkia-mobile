@@ -27,9 +27,7 @@ const COLORS = {
 
 const FEATURES = [
   { icon: 'reorder-three-outline', label: 'Texte' },
-  { icon: 'link-outline', label: 'URL' },
   { icon: 'image-outline', label: 'Image' },
-  { icon: 'mic-outline', label: 'Audio' },
 ];
 
 export default function OnboardingScreen() {

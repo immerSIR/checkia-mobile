@@ -6,8 +6,12 @@ export type ResultViewModel = {
   rapportNum: string;
   date: string;
   verdict: Verdict;
-  score: number;
-  scoreLabel: string;
+  statusTitle: string;
+  statusChip: string;
+  statusDescription: string;
+  hasConfidence: boolean;
+  score?: number;
+  scoreLabel?: string;
   claim: string;
   analysis: string;
   sources: Array<{
@@ -17,6 +21,78 @@ export type ResultViewModel = {
     url?: string;
   }>;
 };
+
+const TEXT_STATUS_PRESETS: Record<string, { title: string; chip: string; description: string }> = {
+  vérifié: {
+    title: 'Information Vérifiée',
+    chip: 'Fiable',
+    description: 'Cette information a été vérifiée et est considérée comme fiable selon nos analyses approfondies.',
+  },
+  rejeté: {
+    title: 'Information Douteuse',
+    chip: 'Non Fiable',
+    description: 'Cette information a été identifiée comme potentiellement fausse ou trompeuse après vérification.',
+  },
+  'en cours': {
+    title: 'Vérification en Cours',
+    chip: 'En Analyse',
+    description: 'Vérification en cours, notre IA analyse les sources disponibles…',
+  },
+};
+
+const IMAGE_STATUS_PRESETS: Record<string, { title: string; chip: string; description: string }> = {
+  AUTHENTIQUE: {
+    title: 'Image authentique',
+    chip: 'Authentique',
+    description: 'Cette image semble être authentique et prise par un appareil photo réel.',
+  },
+  IA_DÉTECTÉE: {
+    title: 'IA détectée',
+    chip: 'IA détectée',
+    description: 'Cette image présente des caractéristiques typiques d\'une génération par IA.',
+  },
+  INCERTAIN: {
+    title: 'Résultat incertain',
+    chip: 'Incertain',
+    description: 'Il n\'est pas possible de déterminer avec certitude l\'origine de cette image.',
+  },
+  VRAIE: {
+    title: 'Contenu vérifié',
+    chip: 'Vraie',
+    description: 'Le contenu de cette image est confirmé par les sources analysées.',
+  },
+  FAUSSE: {
+    title: 'Contenu erroné',
+    chip: 'Fausse',
+    description: 'Le contenu de cette image contredit les sources analysées.',
+  },
+  INDÉTERMINÉE: {
+    title: 'Contenu indéterminé',
+    chip: 'Indéterminée',
+    description: 'Les sources analysées ne permettent pas de conclure.',
+  },
+  ANALYSÉE: {
+    title: 'Analyse terminée',
+    chip: 'Analysée',
+    description: 'L\'analyse de l\'image est terminée.',
+  },
+  EN_COURS: {
+    title: 'Vérification en Cours',
+    chip: 'En Analyse',
+    description: 'Vérification en cours, notre IA analyse les sources disponibles…',
+  },
+  ERREUR: {
+    title: 'Erreur d\'analyse',
+    chip: 'Erreur',
+    description: 'Une erreur est survenue lors de l\'analyse de cette image.',
+  },
+};
+
+const textStatusPreset = (statut?: string) =>
+  TEXT_STATUS_PRESETS[statut ?? ''] ?? TEXT_STATUS_PRESETS['en cours'];
+
+const imageStatusPreset = (status?: string) =>
+  IMAGE_STATUS_PRESETS[status ?? ''] ?? IMAGE_STATUS_PRESETS.EN_COURS;
 
 const toDate = (value?: string | null) => {
   if (!value) return new Date();
@@ -41,12 +117,6 @@ export const mapImageStatusToVerdict = (status?: string): Verdict => {
   if (status === 'VRAIE' || status === 'AUTHENTIQUE') return 'VRAI';
   if (status === 'FAUSSE' || status === 'IA_DÉTECTÉE' || status === 'ERREUR') return 'FAUX';
   return 'DOUTEUX';
-};
-
-export const scoreFromSubmission = (submission: Submission) => {
-  if (submission.statut === 'vérifié') return 87;
-  if (submission.statut === 'rejeté') return 32;
-  return 50;
 };
 
 export const scoreLabel = (score: number) => {
@@ -74,7 +144,6 @@ export const mapSubmissionToFactCheck = (submission: Submission): FactCheck => (
   verdict: mapSubmissionStatusToVerdict(submission.statut),
   created_at: submission.date,
   input_type: submission.source ? 'url' : 'texte',
-  score: scoreFromSubmission(submission),
   source: submission.source || undefined,
 });
 
@@ -89,38 +158,45 @@ export const mapImageToFactCheck = (verification: ImageVerification): FactCheck 
 });
 
 export const mapSubmissionToResult = (submission: Submission): ResultViewModel => {
-  const score = scoreFromSubmission(submission);
   const sources = (submission.web_sources ?? []).map((source: any) => ({
     name: sourceName(source),
     desc: source?.snippet || source?.description || source?.content || source?.url || 'Source utilisée pour la vérification.',
     url: source?.url,
   }));
+  const preset = textStatusPreset(submission.statut);
 
   return {
     id: String(submission.id),
     rapportNum: String(submission.id).padStart(3, '0'),
     date: formatReportDate(submission.date),
     verdict: mapSubmissionStatusToVerdict(submission.statut),
-    score,
-    scoreLabel: scoreLabel(score),
+    statusTitle: preset.title,
+    statusChip: preset.chip,
+    statusDescription: preset.description,
+    hasConfidence: false,
     claim: submission.texte,
-    analysis: submission.detailed_result || "L'analyse est en cours de finalisation.",
+    analysis: submission.detailed_result || preset.description,
     sources,
   };
 };
 
 export const mapImageToResult = (verification: ImageVerification): ResultViewModel => {
   const score = verification.confidence ?? 0;
+  const preset = imageStatusPreset(verification.status);
 
   return {
     id: `image-${verification.id}`,
     rapportNum: String(verification.id).padStart(3, '0'),
     date: formatReportDate(verification.date),
     verdict: mapImageStatusToVerdict(verification.status),
+    statusTitle: preset.title,
+    statusChip: preset.chip,
+    statusDescription: preset.description,
+    hasConfidence: true,
     score,
     scoreLabel: scoreLabel(score),
     claim: verification.claim_text || verification.original_filename || 'Image importée',
-    analysis: verification.explanation || "L'analyse image est terminée.",
+    analysis: verification.explanation || preset.description,
     sources: verification.image_url
       ? [{ name: verification.original_filename || 'Image', desc: verification.image_url, url: verification.image_url }]
       : [],

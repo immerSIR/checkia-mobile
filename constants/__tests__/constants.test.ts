@@ -4,7 +4,7 @@
  */
 
 import { Colors, P } from '../colors';
-import { TABS, ANALYSIS_STEPS, STEP_TITLES, SOURCES, AUDIO_OPTIONS } from '../verify';
+import { TABS, ANALYSIS_STEPS, STEP_TITLES, SOURCES } from '../verify';
 
 describe('Constants Integrity', () => {
   describe('Colors', () => {
@@ -24,9 +24,9 @@ describe('Constants Integrity', () => {
   });
 
   describe('Verify Constants', () => {
-    it('TABS doit contenir 4 onglets', () => {
-      expect(TABS).toHaveLength(4);
-      expect(TABS.map(t => t.key)).toEqual(['Texte', 'URL', 'Image', 'Audio']);
+    it('TABS doit contenir 2 onglets (Texte, Image) — alignement web', () => {
+      expect(TABS).toHaveLength(2);
+      expect(TABS.map(t => t.key)).toEqual(['Texte', 'Image']);
     });
 
     it('ANALYSIS_STEPS doit avoir 5 étapes', () => {
@@ -44,11 +44,5 @@ describe('Constants Integrity', () => {
       expect(SOURCES).toContain('AFP Fact Check');
     });
 
-    it('AUDIO_OPTIONS doit avoir les 3 modes d\'analyse', () => {
-      expect(AUDIO_OPTIONS).toHaveLength(3);
-      expect(AUDIO_OPTIONS.map(o => o.key)).toContain('transcription');
-      expect(AUDIO_OPTIONS.map(o => o.key)).toContain('voix-ia');
-      expect(AUDIO_OPTIONS.map(o => o.key)).toContain('fact-check');
-    });
   });
 });

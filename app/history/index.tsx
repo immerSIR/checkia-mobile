@@ -3,13 +3,12 @@ import { ActivityIndicator, ScrollView, View, Text, StyleSheet, TouchableOpacity
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { FactCheck } from '../../data/homeData';
-import { factCheckAPI, imageVerificationAPI } from '../../services/api';
-import { mapImageToFactCheck, mapSubmissionToFactCheck } from '../../utils/apiMappers';
+import { factCheckAPI } from '../../services/api';
+import { mapSubmissionToFactCheck } from '../../utils/apiMappers';
 
 const palette = {
   bg: '#F7F3E9',
   paperLight: '#FCFAF2',
-  paperDark: '#EEE8D6',
   ink: '#0F1E3D',
   ink2: '#2A3657',
   ink3: '#6B7493',
@@ -19,102 +18,7 @@ const palette = {
 
   green: '#5F7F67',
   greenBg: '#D6E6D8',
-
-  red: '#B75252',
-  redBg: '#E9CFCF',
-
-  gold: '#A67C1B',
-  goldBg: '#E8D6A7',
-
-  navyChip: '#172B63',
 };
-
-const FILTERS = [
-  { key: 'Tout', label: 'Tout : 24', bg: palette.navyChip, color: '#FFFFFF', active: true },
-  { key: 'VRAI', label: 'Vraies : 18', bg: '#CFE0D2', color: palette.green },
-  { key: 'FAUX', label: 'Fausses : 6', bg: '#E7CACA', color: palette.red },
-  { key: 'DOUTEUX', label: 'À nuancer : 3', bg: '#E9D59D', color: '#8A6713' },
-];
-
-const GROUPS = [
-  {
-    title: "AUJOURD'HUI  ·  12 MAR",
-    items: [
-      {
-        id: '1',
-        source: 'BENBERE.COM',
-        icon: 'link-outline',
-        title: 'Référendum constitutionnel Mali juin 2026',
-        verdict: 'VRAI',
-        score: 87,
-        time: '10:27',
-        dot: '#1D7A46',
-      },
-      {
-        id: '2',
-        source: 'WHATSAPP',
-        icon: 'image-outline',
-        title: 'Photo supposée de manifestations à Bamako',
-        verdict: 'FAUX',
-        score: 94,
-        time: '09:14',
-        dot: '#C43B3B',
-      },
-    ],
-  },
-  {
-    title: 'HIER  ·  11 MAR',
-    items: [
-      {
-        id: '3',
-        source: 'TEXTE',
-        icon: 'document-text-outline',
-        title: 'Citation attribuée au Premier ministre',
-        verdict: 'DOUTEUX',
-        score: 62,
-        time: '16:02',
-        dot: '#B8860B',
-      },
-      {
-        id: '4',
-        source: 'RTM',
-        icon: 'mic-outline',
-        title: 'Audio discours ministre santé',
-        verdict: 'VRAI',
-        score: 81,
-        time: '11:48',
-        dot: '#1D7A46',
-      },
-    ],
-  },
-];
-
-function verdictStyle(verdict: string) {
-  if (verdict === 'VRAI') {
-    return {
-      label: 'VÉRIFIÉ · VRAI',
-      bg: palette.greenBg,
-      color: palette.green,
-      icon: 'checkmark',
-    };
-  }
-
-  if (verdict === 'FAUX') {
-    return {
-      label: 'FAUX',
-      bg: palette.redBg,
-      color: palette.red,
-      icon: 'close',
-    };
-  }
-
-  return {
-    label: 'À NUANCER',
-    bg: palette.goldBg,
-    color: palette.gold,
-    icon: 'warning-outline',
-  };
-}
 
 export default function History() {
   const router = useRouter();
@@ -125,14 +29,12 @@ export default function History() {
     const loadHistory = async () => {
       setLoading(true);
       try {
-        const [submissions, imageVerifications] = await Promise.all([
-          factCheckAPI.getHistory(),
-          imageVerificationAPI.getHistory().catch(() => ({ data: [] })),
-        ]);
-        setItems([
-          ...submissions.data.map(mapSubmissionToFactCheck),
-          ...imageVerifications.data.map(mapImageToFactCheck),
-        ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+        const submissions = await factCheckAPI.getHistory();
+        const merged = submissions.data
+          .map(mapSubmissionToFactCheck)
+          .filter((item) => item.verdict === 'VRAI')
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setItems(merged);
       } finally {
         setLoading(false);
       }
@@ -141,36 +43,8 @@ export default function History() {
     loadHistory();
   }, []);
 
-  const summary = {
-    total: items.length,
-    vrai: items.filter((item) => item.verdict === 'VRAI').length,
-    faux: items.filter((item) => item.verdict === 'FAUX').length,
-    douteux: items.filter((item) => item.verdict === 'DOUTEUX').length,
-  };
-
-  const filters = [
-    { key: 'Tout', label: `Tout : ${summary.total}`, bg: palette.navyChip, color: '#FFFFFF' },
-    { key: 'VRAI', label: `Vraies : ${summary.vrai}`, bg: '#CFE0D2', color: palette.green },
-    { key: 'FAUX', label: `Fausses : ${summary.faux}`, bg: '#E7CACA', color: palette.red },
-    { key: 'DOUTEUX', label: `À nuancer : ${summary.douteux}`, bg: '#E9D59D', color: '#8A6713' },
-  ];
-
   const navigateToResult = (item: FactCheck) => {
-    if (String(item.id).startsWith('image-')) {
-      router.push(`/result/${String(item.id).replace('image-', '')}?kind=image`);
-    } else {
-      router.push(`/result/${item.id}?kind=text`);
-    }
-  };
-
-  const formatPeriod = () => {
-    if (items.length === 0) return 'Aucune vérification synchronisée.';
-    const dates = items.map((item) => new Date(item.created_at).getTime()).filter(Boolean);
-    if (dates.length === 0) return 'Dates indisponibles.';
-    const start = new Date(Math.min(...dates));
-    const end = new Date(Math.max(...dates));
-    const fmt = (date: Date) => date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-    return `Du ${fmt(start)} au ${fmt(end)}.`;
+    router.push(`/result/${item.id}?kind=text`);
   };
 
   return (
@@ -189,55 +63,32 @@ export default function History() {
           <Ionicons name="arrow-back" size={18} color={palette.ink} />
         </TouchableOpacity>
 
-        <Text style={styles.topTitle}>HISTORIQUE</Text>
+        <Text style={styles.topTitle}>FAITS VÉRIFIÉS</Text>
 
-        <TouchableOpacity style={styles.iconBtn} activeOpacity={0.85}>
-          <Ionicons name="funnel-outline" size={17} color={palette.ink2} />
-        </TouchableOpacity>
+        <View style={styles.iconBtnSpacer} />
       </View>
 
       <View style={styles.hero}>
         <Text style={styles.heroTitle} testID="history-count">
-          {summary.total} <Text style={styles.heroItalic}>vérifications.</Text>
+          {items.length} <Text style={styles.heroItalic}>faits vérifiés.</Text>
         </Text>
-        <Text style={styles.heroSub}>{formatPeriod()}</Text>
+        <Text style={styles.heroSub}>
+          Vos vérifications qui ont été confirmées comme fiables.
+        </Text>
       </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filters}
-      >
-        {filters.map((filter) => (
-          <TouchableOpacity
-            key={filter.key}
-            style={[styles.filterChip, { backgroundColor: filter.bg }]}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.filterChipText, { color: filter.color }]}>
-              {filter.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-
-        <View style={styles.filtersArrowWrap}>
-          <Ionicons name="caret-forward" size={13} color={palette.ink4} />
-        </View>
-      </ScrollView>
 
       {loading ? (
         <ActivityIndicator color={palette.accent} style={{ marginTop: 24 }} />
+      ) : items.length === 0 ? (
+        <Text style={styles.empty}>
+          Aucun fait vérifié pour le moment. Lancez une vérification depuis l'onglet Vérifier.
+        </Text>
       ) : (
         <View style={styles.group}>
-          <Text style={styles.groupTitle}>VÉRIFICATIONS RÉCENTES</Text>
+          <Text style={styles.groupTitle}>MES FAITS VÉRIFIÉS</Text>
           {items.map((item, index) => {
-            const verdict = verdictStyle(item.verdict);
-            const icon = item.input_type === 'image'
-              ? 'image-outline'
-              : item.input_type === 'url'
-                ? 'link-outline'
-                : 'document-text-outline';
-            const source = item.source || item.input_type.toUpperCase();
+            const icon = item.input_type === 'url' ? 'link-outline' : 'document-text-outline';
+            const source = item.source || 'TEXTE';
             const time = new Date(item.created_at).toLocaleTimeString('fr-FR', {
               hour: '2-digit',
               minute: '2-digit',
@@ -246,16 +97,13 @@ export default function History() {
             return (
               <TouchableOpacity
                 key={item.id}
-                style={[
-                  styles.row,
-                  index !== items.length - 1 && styles.rowBorder,
-                ]}
+                style={[styles.row, index !== items.length - 1 && styles.rowBorder]}
                 activeOpacity={0.85}
                 onPress={() => navigateToResult(item)}
               >
                 <View style={styles.rowTop}>
                   <View style={styles.metaLeft}>
-                    <View style={[styles.metaDot, { backgroundColor: verdict.color }]} />
+                    <View style={[styles.metaDot, { backgroundColor: palette.green }]} />
                     <Ionicons
                       name={icon as any}
                       size={12}
@@ -271,14 +119,16 @@ export default function History() {
                 <Text style={styles.itemTitle}>{item.raw_input}</Text>
 
                 <View style={styles.bottomLine}>
-                  <View style={[styles.verdictBadge, { backgroundColor: verdict.bg }]}>
-                    <Ionicons name={verdict.icon as any} size={12} color={verdict.color} />
-                    <Text style={[styles.verdictText, { color: verdict.color }]}>
-                      {verdict.label}
+                  <View style={[styles.verdictBadge, { backgroundColor: palette.greenBg }]}>
+                    <Ionicons name="checkmark" size={12} color={palette.green} />
+                    <Text style={[styles.verdictText, { color: palette.green }]}>
+                      VÉRIFIÉ · VRAI
                     </Text>
                   </View>
 
-                  <Text style={styles.score}>{item.score ?? 0}%</Text>
+                  {typeof item.score === 'number' && (
+                    <Text style={styles.score}>{item.score}%</Text>
+                  )}
                 </View>
               </TouchableOpacity>
             );
@@ -316,6 +166,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconBtnSpacer: {
+    width: 34,
+    height: 34,
+  },
   topTitle: {
     fontSize: 12,
     fontWeight: '700',
@@ -324,14 +178,13 @@ const styles = StyleSheet.create({
   },
 
   hero: {
-    marginBottom: 18,
+    marginBottom: 24,
   },
   heroTitle: {
     color: palette.ink,
     fontSize: 28,
     lineHeight: 33,
     letterSpacing: -0.5,
-    // idéalement Instrument Serif
     fontWeight: '400',
     marginBottom: 6,
   },
@@ -342,28 +195,14 @@ const styles = StyleSheet.create({
   heroSub: {
     fontSize: 14,
     color: palette.ink3,
+    lineHeight: 20,
   },
 
-  filters: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 8,
-    marginBottom: 18,
-  },
-  filterChip: {
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-  },
-  filterChipText: {
+  empty: {
+    color: palette.ink3,
     fontSize: 14,
-    fontWeight: '600',
-  },
-  filtersArrowWrap: {
-    width: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 12,
+    lineHeight: 21,
   },
 
   group: {
@@ -372,7 +211,6 @@ const styles = StyleSheet.create({
   groupTitle: {
     fontSize: 10,
     fontWeight: '700',
-    // letterSpacing: 1.2,
     color: palette.ink4,
     marginBottom: 10,
   },
@@ -417,7 +255,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 23,
     marginBottom: 12,
-    // idéalement Instrument Serif
     fontWeight: '400',
   },
 
