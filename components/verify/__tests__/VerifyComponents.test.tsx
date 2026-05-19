@@ -52,7 +52,7 @@ describe('Verify Module Components', () => {
   describe('VerifyTabs', () => {
     it('affiche tous les onglets et gère le changement', () => {
       const onChangeMock = jest.fn();
-      const { getByText } = render(<VerifyTabs tab="text" onChange={onChangeMock} />);
+      const { getByText } = render(<VerifyTabs tab={'text' as any} onChange={onChangeMock} />);
       expect(getByText('Texte')).toBeTruthy();
       expect(getByText('Lien')).toBeTruthy();
       fireEvent.press(getByText('Lien'));
@@ -117,7 +117,7 @@ describe('Verify Module Components', () => {
 
       const { getByText, rerender, getByTestId } = render(
         <VerifyAudioTab
-          audioUri={null} audioName={null} audioMode="voix" isRecording={false}
+          audioUri={null} audioName={null} audioMode={'voix' as any} isRecording={false}
           onPickAudio={onPickAudioMock} onClearAudio={() => {}} onToggleRecording={onToggleRecordingMock} onSelectMode={onSelectModeMock}
         />
       );
@@ -133,7 +133,7 @@ describe('Verify Module Components', () => {
 
       rerender(
         <VerifyAudioTab
-          audioUri="uri" audioName="test.mp3" audioMode="voix" isRecording={true}
+          audioUri="uri" audioName="test.mp3" audioMode={'voix' as any} isRecording={true}
           onPickAudio={onPickAudioMock} onClearAudio={() => {}} onToggleRecording={onToggleRecordingMock} onSelectMode={onSelectModeMock}
         />
       );

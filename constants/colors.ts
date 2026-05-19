@@ -12,6 +12,7 @@ export const Colors = {
   // ── Accent (navy) ──────────────────────────
   accent:       '#1E3A8A',       // boutons, liens, dots actifs
   accentSoft:   '#E4E9F6',       // fond badge accent
+  accentDim:    '#E4E9F6',
 
   // ── Règle / bordures ───────────────────────
   rule:         '#E2DDCB',       // bordures légères
@@ -49,6 +50,7 @@ export const P = {
   muted:      '#6B7493',
   line:       '#E2DDCB',
   navy:       '#1E3A8A',
+  accent:     '#1E3A8A',
   navyDark:   '#10275A',
   white:      '#FFFFFF',
   statBeige:  '#F1EDE4',

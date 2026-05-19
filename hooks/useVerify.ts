@@ -1,14 +1,16 @@
 import { useRef, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { urlPreviewAPI } from '../services/api';
+import { factCheckAPI, imageVerificationAPI, taskAPI, urlPreviewAPI } from '../services/api';
 import { ANALYSIS_STEPS, AudioMode, ImageMode, Tab } from '../constants/verify';
 
 export function useVerify(router: any) {
   const timerRef = useRef<any>(null);
+  const analysisTimerRef = useRef<any>(null);
   const [tab, setTab] = useState<Tab>('Texte');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0);
+  const [error, setError] = useState('');
   const [texte, setTexte] = useState('');
   const [url, setUrl] = useState('');
   const [preview, setPreview] = useState<any>(null);
@@ -24,7 +26,7 @@ export function useVerify(router: any) {
     if (tab === 'Texte') return texte.trim().length > 0;
     if (tab === 'URL') return url.trim().length > 0;
     if (tab === 'Image') return imageUri !== null && imageMode !== null;
-    if (tab === 'Audio') return audioUri !== null || isRecording;
+    if (tab === 'Audio') return false;
     return false;
   };
 
@@ -91,31 +93,109 @@ export function useVerify(router: any) {
 
   const toggleRecording = () => setIsRecording((v) => !v);
 
-  const handleAnalyze = () => {
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const startStepTicker = () => {
+    if (analysisTimerRef.current) clearInterval(analysisTimerRef.current);
+    let cur = 0;
+    setStep(0);
+    analysisTimerRef.current = setInterval(() => {
+      cur = Math.min(cur + 1, ANALYSIS_STEPS.length - 1);
+      setStep(cur);
+    }, 1800);
+  };
+
+  const stopStepTicker = () => {
+    if (analysisTimerRef.current) {
+      clearInterval(analysisTimerRef.current);
+      analysisTimerRef.current = null;
+    }
+  };
+
+  const pollTextSubmission = async (id: string | number) => {
+    for (let attempt = 0; attempt < 60; attempt++) {
+      const { data } = await factCheckAPI.getResult(id);
+      if (data.statut && data.statut !== 'en cours') {
+        return data;
+      }
+      await sleep(2000);
+    }
+    throw new Error("L'analyse prend plus de temps que prévu. Réessayez depuis l'historique.");
+  };
+
+  const pollImageTask = async (taskId: string): Promise<any> => {
+    let currentTaskId = taskId;
+
+    for (let attempt = 0; attempt < 90; attempt++) {
+      const { data } = await taskAPI.getStatus(currentTaskId);
+
+      if (data.state === 'FAILURE') {
+        throw new Error(data.error || "La vérification de l'image a échoué.");
+      }
+
+      if (data.state === 'SUCCESS' && data.result) {
+        if (data.result.success && data.result.task_id && !data.result.status) {
+          currentTaskId = data.result.task_id;
+        } else if (data.result.success && data.result.status) {
+          return data.result;
+        } else if (data.result.error) {
+          throw new Error(data.result.error);
+        }
+      }
+
+      await sleep(2000);
+    }
+
+    throw new Error("L'analyse image prend plus de temps que prévu.");
+  };
+
+  const handleAnalyze = async () => {
     if (!canAnalyze()) return;
     setLoading(true);
-    setStep(0);
-    let cur = 0;
-    const iv = setInterval(() => {
-      cur++;
-      setStep(cur);
-      if (cur >= ANALYSIS_STEPS.length) {
-        clearInterval(iv);
-        setLoading(false);
-        router.push('/result/1');
+    setError('');
+    startStepTicker();
+
+    try {
+      if (tab === 'Texte') {
+        const { data } = await factCheckAPI.submit({ texte: texte.trim(), source: '' });
+        await pollTextSubmission(data.id);
+        router.push(`/result/${data.id}?kind=text`);
+        return;
       }
-    }, 1200);
+
+      if (tab === 'URL') {
+        const normalizedUrl = url.trim();
+        const { data } = await factCheckAPI.submit({ texte: normalizedUrl, source: normalizedUrl });
+        await pollTextSubmission(data.id);
+        router.push(`/result/${data.id}?kind=text`);
+        return;
+      }
+
+      if (tab === 'Image' && imageUri) {
+        const response = imageMode === 'ia'
+          ? await imageVerificationAPI.detectAI(imageUri)
+          : await imageVerificationAPI.verifyContent(imageUri, texte.trim());
+        const result = await pollImageTask(response.data.task_id);
+        const id = result.verification_id;
+        router.push(`/result/${id}?kind=image`);
+      }
+    } catch (err: any) {
+      setError(err.message || "Impossible de lancer l'analyse.");
+    } finally {
+      stopStepTicker();
+      setLoading(false);
+    }
   };
 
   const ctaLabel = () => {
     if (tab === 'Texte') return 'Analyser ce texte';
     if (tab === 'URL') return 'Analyser ce lien';
-    if (tab === 'Audio') return "Analyser l'audio";
+    if (tab === 'Audio') return 'Audio bientôt disponible';
     return "Lancer l'analyse";
   };
 
   return {
-    tab, setTab, loading, setLoading, step, setStep, texte, setTexte,
+    tab, setTab, loading, setLoading, step, setStep, error, setError, texte, setTexte,
     url, preview, previewLoading, imageUri, imageMode, audioUri, audioName,
     audioMode, isRecording, setImageMode, setAudioMode, handleUrlChange,
     clearUrl, pickImage, clearImage, pickAudio, clearAudio, toggleRecording,
