@@ -23,14 +23,14 @@ jest.mock('@expo/vector-icons', () => ({
 // Mock Constants
 jest.mock('../../../constants/verify', () => ({
   TABS: [
-    { key: 'text', label: 'Texte', icon: 'document-text' },
-    { key: 'url', label: 'Lien', icon: 'link' },
-    { key: 'audio', label: 'Audio', icon: 'mic' },
-    { key: 'image', label: 'Image', icon: 'image' },
+    { key: 'Texte', label: 'Texte', icon: 'document-text' },
+    { key: 'URL', label: 'Lien', icon: 'link' },
+    { key: 'Audio', label: 'Audio', icon: 'mic' },
+    { key: 'Image', label: 'Image', icon: 'image' },
   ],
   SOURCES: ['MaliCheck', 'AFP'],
   AUDIO_OPTIONS: [
-    { key: 'voix', label: 'Voix', icon: 'mic', sub: 'Analyse vocale' }
+    { key: 'voix-ia', label: 'Voix', icon: 'mic', sub: 'Analyse vocale' }
   ],
   ANALYSIS_STEPS: [
     { label: 'Etape 1', sub: 'Sub 1', badge: 'En cours' },
@@ -52,11 +52,11 @@ describe('Verify Module Components', () => {
   describe('VerifyTabs', () => {
     it('affiche tous les onglets et gère le changement', () => {
       const onChangeMock = jest.fn();
-      const { getByText } = render(<VerifyTabs tab="text" onChange={onChangeMock} />);
+      const { getByText } = render(<VerifyTabs tab="Texte" onChange={onChangeMock} />);
       expect(getByText('Texte')).toBeTruthy();
       expect(getByText('Lien')).toBeTruthy();
       fireEvent.press(getByText('Lien'));
-      expect(onChangeMock).toHaveBeenCalledWith('url');
+      expect(onChangeMock).toHaveBeenCalledWith('URL');
     });
   });
 
@@ -117,7 +117,7 @@ describe('Verify Module Components', () => {
 
       const { getByText, rerender, getByTestId } = render(
         <VerifyAudioTab
-          audioUri={null} audioName={null} audioMode="voix" isRecording={false}
+          audioUri={null} audioName={null} audioMode="voix-ia" isRecording={false}
           onPickAudio={onPickAudioMock} onClearAudio={() => {}} onToggleRecording={onToggleRecordingMock} onSelectMode={onSelectModeMock}
         />
       );
@@ -129,11 +129,11 @@ describe('Verify Module Components', () => {
       expect(onPickAudioMock).toHaveBeenCalled();
 
       fireEvent.press(getByText('Voix'));
-      expect(onSelectModeMock).toHaveBeenCalledWith('voix');
+      expect(onSelectModeMock).toHaveBeenCalledWith('voix-ia');
 
       rerender(
         <VerifyAudioTab
-          audioUri="uri" audioName="test.mp3" audioMode="voix" isRecording={true}
+          audioUri="uri" audioName="test.mp3" audioMode="voix-ia" isRecording={true}
           onPickAudio={onPickAudioMock} onClearAudio={() => {}} onToggleRecording={onToggleRecordingMock} onSelectMode={onSelectModeMock}
         />
       );

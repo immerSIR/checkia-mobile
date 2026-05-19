@@ -232,7 +232,6 @@ const s = StyleSheet.create({
     fontFamily: 'InstrumentSerif-Regular',
     fontWeight: '400',
     color: P.navy,
-    float: undefined,
   },
 
   // Pull quote
