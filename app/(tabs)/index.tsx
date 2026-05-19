@@ -6,8 +6,8 @@ import { useRouter } from 'expo-router';
 import { P } from '../../constants/colors';
 import { s } from '../../styles/home.styles';
 import { MOCK_HISTORY, FactCheck } from '../../data/homeData';
-import { factCheckAPI, imageVerificationAPI } from '../../services/api';
-import { mapImageToFactCheck, mapSubmissionToFactCheck } from '../../utils/apiMappers';
+import { factCheckAPI } from '../../services/api';
+import { mapSubmissionToFactCheck } from '../../utils/apiMappers';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 import { HomeHeader } from '../../components/home/HomeHeader';
@@ -27,14 +27,10 @@ export default function HomeScreen() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [submissions, imageVerifications] = await Promise.all([
-        factCheckAPI.getHistory(),
-        imageVerificationAPI.getHistory().catch(() => ({ data: [] })),
-      ]);
-      const items = [
-        ...submissions.data.map(mapSubmissionToFactCheck),
-        ...imageVerifications.data.map(mapImageToFactCheck),
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const { data } = await factCheckAPI.getHistory();
+      const items = data
+        .map(mapSubmissionToFactCheck)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       if (items.length > 0) {
         setHistory(items.slice(0, 5));
@@ -75,13 +71,7 @@ export default function HomeScreen() {
               key={item.id}
               item={item}
               isLast={i === history.length - 1}
-              onPress={() => {
-                if (String(item.id).startsWith('image-')) {
-                  router.push(`/result/${String(item.id).replace('image-', '')}?kind=image`);
-                } else {
-                  router.push(`/result/${item.id}?kind=text`);
-                }
-              }}
+              onPress={() => router.push(`/result/${item.id}?kind=text`)}
             />
           ))
         )}
