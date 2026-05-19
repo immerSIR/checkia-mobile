@@ -24,6 +24,7 @@ jest.mock('../../services/api', () => ({
   },
   authAPI: {
     getSession: jest.fn(),
+    me: jest.fn(),
   },
 }));
 
@@ -56,6 +57,12 @@ describe('Tab Screens', () => {
     (factCheckAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
     (imageVerificationAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
     (authAPI.getSession as jest.Mock).mockResolvedValue(null);
+    (authAPI.me as jest.Mock).mockResolvedValue({
+      data: {
+        email: 'demo@example.com',
+        user_metadata: { first_name: 'Demo', last_name: 'User', country: 'Mali' },
+      },
+    });
     (contentAPI.getFacts as jest.Mock).mockResolvedValue({ data: [] });
   });
 

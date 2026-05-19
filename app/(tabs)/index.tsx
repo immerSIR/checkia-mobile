@@ -8,6 +8,7 @@ import { s } from '../../styles/home.styles';
 import { MOCK_HISTORY, FactCheck } from '../../data/homeData';
 import { factCheckAPI, imageVerificationAPI } from '../../services/api';
 import { mapImageToFactCheck, mapSubmissionToFactCheck } from '../../utils/apiMappers';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 import { HomeHeader } from '../../components/home/HomeHeader';
 import { HomeHero } from '../../components/home/HomeHero';
@@ -15,6 +16,7 @@ import { HistoryRow } from '../../components/home/HistoryRow';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useCurrentUser();
   const [history, setHistory] = useState<FactCheck[]>(MOCK_HISTORY);
   const [loading, setLoading] = useState(false);
 
@@ -52,7 +54,7 @@ export default function HomeScreen() {
         contentContainerStyle={[s.container, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
       >
-        <HomeHeader name="Ibrahima" />
+        <HomeHeader name={user.firstName} initials={user.initials} />
         <HomeHero />
 
         <View style={s.sectionHeader}>

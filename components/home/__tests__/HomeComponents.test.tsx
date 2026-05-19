@@ -66,15 +66,15 @@ describe('Home Module Components', () => {
 
   describe('HomeHeader', () => {
     it('affiche le nom de l\'utilisateur et la date', () => {
-      const { getByText } = render(<HomeHeader name="ImmersIA" />);
+      const { getByText } = render(<HomeHeader name="ImmersIA" initials="IA" />);
       expect(getByText(/Bonjour/)).toBeTruthy();
       expect(getByText(/ImmersIA/)).toBeTruthy();
       expect(getByText('Lundi 1 Janvier')).toBeTruthy();
     });
 
-    it('navigue vers le profil lors du clic sur l\'avatar', () => {
-      const { getByText } = render(<HomeHeader name="ImmersIA" />);
-      fireEvent.press(getByText('IK'));
+    it('affiche les initiales transmises et navigue vers le profil', () => {
+      const { getByText } = render(<HomeHeader name="ImmersIA" initials="IA" />);
+      fireEvent.press(getByText('IA'));
       expect(mockPush).toHaveBeenCalledWith('/profile');
     });
   });
