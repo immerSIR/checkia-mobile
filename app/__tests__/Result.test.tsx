@@ -56,14 +56,14 @@ describe('Result Screen', () => {
     });
   });
 
-  it('affiche l\'indice de confiance et le score', async () => {
-    const { getByText } = render(<ResultScreen />);
+  it('n\'affiche pas l\'indice de confiance pour une soumission texte (le backend ne le fournit pas)', async () => {
+    const { getByText, queryByText } = render(<ResultScreen />);
 
     await waitFor(() => {
-      expect(getByText('INDICE DE CONFIANCE')).toBeTruthy();
-      expect(getByText('ÉLEVÉ')).toBeTruthy();
-      expect(getByText('87%')).toBeTruthy();
+      expect(getByText(/Le Mali va organiser un référendum/)).toBeTruthy();
     });
+
+    expect(queryByText('INDICE DE CONFIANCE')).toBeNull();
   });
 
   it('affiche l\'affirmation vérifiée', async () => {

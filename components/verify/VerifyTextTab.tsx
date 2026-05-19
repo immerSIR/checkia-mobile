@@ -65,31 +65,6 @@ export default function VerifyTextTab({ texte, setTexte, source, setSource }: Pr
         )}
       </View>
 
-      <Text style={s.sectionLabel}>— OPTIONS</Text>
-
-      <TouchableOpacity style={s.optionRow} activeOpacity={0.8}>
-        <View style={s.optionLeft}>
-          <Ionicons name="layers-outline" size={18} color={P.navy} />
-          <View style={s.optionTextWrap}>
-            <Text style={s.optionTitle}>Sources de fact-checking</Text>
-            <Text style={s.optionSub}>Benbere, MaliCheck, AFP, WikAfrica</Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={16} color={P.muted} />
-      </TouchableOpacity>
-
-      <View style={s.optionRow}>
-        <View style={s.optionLeft}>
-          <Ionicons name="flash-outline" size={18} color={P.navy} />
-          <View style={s.optionTextWrap}>
-            <Text style={s.optionTitle}>Analyse approfondie</Text>
-            <Text style={s.optionSub}>Recherche étendue (+15s)</Text>
-          </View>
-        </View>
-        <View style={s.toggle}>
-          <View style={s.toggleThumb} />
-        </View>
-      </View>
     </View>
   );
 }

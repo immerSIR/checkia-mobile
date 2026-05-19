@@ -112,29 +112,30 @@ export default function ResultScreen() {
 
         {!loading && RESULT && (
           <>
-        {/* ── Barre de confiance (visible au scroll) ── */}
-        <View style={s.scoreSection}>
-          <View style={s.scoreRow}>
-            <Text style={s.scoreLabelText}>INDICE DE CONFIANCE</Text>
-            <Text style={[s.scoreLevel, { color: verdictColor }]}>
-              {RESULT.scoreLabel}
-            </Text>
+        {/* ── Barre de confiance (uniquement quand le backend fournit un score réel) ── */}
+        {RESULT.hasConfidence && RESULT.score !== undefined && (
+          <View style={s.scoreSection}>
+            <View style={s.scoreRow}>
+              <Text style={s.scoreLabelText}>INDICE DE CONFIANCE</Text>
+              <Text style={[s.scoreLevel, { color: verdictColor }]}>
+                {RESULT.scoreLabel}
+              </Text>
+            </View>
+            <View style={s.barTrack}>
+              <View style={[
+                s.barFill,
+                { width: `${RESULT.score}%` as any, backgroundColor: verdictColor },
+              ]} />
+            </View>
+            <View style={s.barEndRow}>
+              <Text style={s.barEnd}>0</Text>
+              <Text style={[s.barCenter, { color: verdictColor }]}>
+                {RESULT.score}%
+              </Text>
+              <Text style={s.barEnd}>100</Text>
+            </View>
           </View>
-          {/* Barre verte pleine */}
-          <View style={s.barTrack}>
-            <View style={[
-              s.barFill,
-              { width: `${RESULT.score}%` as any, backgroundColor: verdictColor },
-            ]} />
-          </View>
-          <View style={s.barEndRow}>
-            <Text style={s.barEnd}>0</Text>
-            <Text style={[s.barCenter, { color: verdictColor }]}>
-              {RESULT.score}%
-            </Text>
-            <Text style={s.barEnd}>100</Text>
-          </View>
-        </View>
+        )}
 
         {/* ── L'affirmation vérifiée ── */}
         <Text style={s.sectionLabel}>— L'AFFIRMATION VÉRIFIÉE</Text>

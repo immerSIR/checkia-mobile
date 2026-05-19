@@ -278,7 +278,9 @@ export default function History() {
                     </Text>
                   </View>
 
-                  <Text style={styles.score}>{item.score ?? 0}%</Text>
+                  {typeof item.score === 'number' && (
+                    <Text style={styles.score}>{item.score}%</Text>
+                  )}
                 </View>
               </TouchableOpacity>
             );

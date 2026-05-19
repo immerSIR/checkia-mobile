@@ -6,8 +6,9 @@ export type ResultViewModel = {
   rapportNum: string;
   date: string;
   verdict: Verdict;
-  score: number;
-  scoreLabel: string;
+  hasConfidence: boolean;
+  score?: number;
+  scoreLabel?: string;
   claim: string;
   analysis: string;
   sources: Array<{
@@ -43,12 +44,6 @@ export const mapImageStatusToVerdict = (status?: string): Verdict => {
   return 'DOUTEUX';
 };
 
-export const scoreFromSubmission = (submission: Submission) => {
-  if (submission.statut === 'vérifié') return 87;
-  if (submission.statut === 'rejeté') return 32;
-  return 50;
-};
-
 export const scoreLabel = (score: number) => {
   if (score >= 75) return 'ÉLEVÉ';
   if (score >= 45) return 'MOYEN';
@@ -74,7 +69,6 @@ export const mapSubmissionToFactCheck = (submission: Submission): FactCheck => (
   verdict: mapSubmissionStatusToVerdict(submission.statut),
   created_at: submission.date,
   input_type: submission.source ? 'url' : 'texte',
-  score: scoreFromSubmission(submission),
   source: submission.source || undefined,
 });
 
@@ -89,7 +83,6 @@ export const mapImageToFactCheck = (verification: ImageVerification): FactCheck 
 });
 
 export const mapSubmissionToResult = (submission: Submission): ResultViewModel => {
-  const score = scoreFromSubmission(submission);
   const sources = (submission.web_sources ?? []).map((source: any) => ({
     name: sourceName(source),
     desc: source?.snippet || source?.description || source?.content || source?.url || 'Source utilisée pour la vérification.',
@@ -101,8 +94,7 @@ export const mapSubmissionToResult = (submission: Submission): ResultViewModel =
     rapportNum: String(submission.id).padStart(3, '0'),
     date: formatReportDate(submission.date),
     verdict: mapSubmissionStatusToVerdict(submission.statut),
-    score,
-    scoreLabel: scoreLabel(score),
+    hasConfidence: false,
     claim: submission.texte,
     analysis: submission.detailed_result || "L'analyse est en cours de finalisation.",
     sources,
@@ -117,6 +109,7 @@ export const mapImageToResult = (verification: ImageVerification): ResultViewMod
     rapportNum: String(verification.id).padStart(3, '0'),
     date: formatReportDate(verification.date),
     verdict: mapImageStatusToVerdict(verification.status),
+    hasConfidence: true,
     score,
     scoreLabel: scoreLabel(score),
     claim: verification.claim_text || verification.original_filename || 'Image importée',
