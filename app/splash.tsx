@@ -2,13 +2,16 @@ import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '../constants/colors';
+import { authAPI } from '../services/api';
 
 export default function Splash() {
   const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/(auth)/onboarding');
+      authAPI.getSession().then((session) => {
+        router.replace(session ? '/(tabs)' : '/(auth)/onboarding');
+      });
     }, 2500);
     return () => clearTimeout(timer);
   }, []);

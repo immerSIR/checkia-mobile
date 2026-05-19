@@ -7,7 +7,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useVerify } from '../useVerify';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { factCheckAPI, urlPreviewAPI } from '../../services/api';
+import { factCheckAPI, taskAPI, urlPreviewAPI } from '../../services/api';
 
 // Mocks
 jest.mock('expo-document-picker');
@@ -19,6 +19,7 @@ jest.mock('../../services/api', () => ({
   factCheckAPI: {
     submit: jest.fn(),
     getResult: jest.fn(),
+    getHistory: jest.fn(),
   },
   imageVerificationAPI: {
     detectAI: jest.fn(),
@@ -65,10 +66,10 @@ describe('useVerify Hook', () => {
   describe('Analyse et Redirection', () => {
     it('gère le cycle complet de l\'analyse', async () => {
       (factCheckAPI.submit as jest.Mock).mockResolvedValue({
-        data: { id: 1, statut: 'en cours', texte: 'Info importante', date: new Date().toISOString() },
+        data: { task_id: 'task-1' },
       });
-      (factCheckAPI.getResult as jest.Mock).mockResolvedValue({
-        data: { id: 1, statut: 'vérifié', texte: 'Info importante', date: new Date().toISOString() },
+      (taskAPI.getStatus as jest.Mock).mockResolvedValue({
+        data: { statut: 'vérifié', submission_id: 1 },
       });
       const { result } = renderHook(() => useVerify(mockRouter));
 

@@ -4,7 +4,7 @@ Check-IA Mobile is an Expo and React Native app for AI-assisted fact-checking wo
 
 The app currently includes:
 
-- Authentication screens for login and registration backed by the API, with tokens stored in `expo-secure-store`.
+- Authentication screens for login and registration backed by Supabase Auth, with the Supabase session stored in `expo-secure-store`.
 - A home dashboard with synchronized text, URL, and image verification history.
 - Verification flows for text, URLs, and images, including polling for asynchronous backend results.
 - Audio verification UI scaffolding for a future backend workflow.
@@ -52,10 +52,12 @@ Create your local environment file:
 cp .env.example .env
 ```
 
-Update `.env` with the backend API URL for your local or hosted Check-IA API. The app requires this value at runtime:
+Update `.env` with the backend URL and the Supabase project used by that backend. The app requires these values at runtime:
 
 ```bash
-EXPO_PUBLIC_API_URL=http://localhost:8000/api
+EXPO_PUBLIC_BACKEND_URL=http://localhost:8000
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 Start the development server:
@@ -85,7 +87,9 @@ npm run typecheck  # Run the TypeScript compiler without emitting files
 
 ## Configuration
 
-The app reads its backend URL from `EXPO_PUBLIC_API_URL`. This value is required outside the Jest test environment, and trailing slashes are normalized before Axios creates the client.
+The app reads its backend URL from `EXPO_PUBLIC_BACKEND_URL`. `EXPO_PUBLIC_API_URL` is still accepted for older local `.env` files and is normalized back to the backend root if it ends in `/api`. Supabase Auth reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+
+Do not point the mobile app at the backend `/api/auth/*` endpoints. The backend validates Supabase JWTs; the app signs in, signs up, refreshes, and signs out through the official Supabase SDK, then sends `Authorization: Bearer <supabase_jwt>` to the Check-IA API.
 
 For physical device testing, `localhost` points to the device, not your development machine. Use a LAN IP address or a tunnel URL that you control.
 

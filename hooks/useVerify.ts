@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { factCheckAPI, imageVerificationAPI, taskAPI, urlPreviewAPI } from '../services/api';
+import { BackendStatus, factCheckAPI, imageVerificationAPI, Submission, taskAPI, TaskStatusResponse, urlPreviewAPI } from '../services/api';
 import { ANALYSIS_STEPS, AudioMode, ImageMode, Tab } from '../constants/verify';
 
 export function useVerify(router: any) {
@@ -112,12 +112,36 @@ export function useVerify(router: any) {
     }
   };
 
-  const pollTextSubmission = async (id: string | number) => {
-    for (let attempt = 0; attempt < 60; attempt++) {
-      const { data } = await factCheckAPI.getResult(id);
-      if (data.statut && data.statut !== 'en cours') {
-        return data;
+  const getTaskStatus = (data: TaskStatusResponse): BackendStatus | undefined =>
+    data.statut ?? data.result?.statut ?? data.status as BackendStatus | undefined;
+
+  const getSubmissionIdFromTask = (data: TaskStatusResponse) =>
+    data.submission_id ?? data.id ?? data.result?.submission_id ?? data.result?.id;
+
+  const latestMatchingSubmission = async (claim: string): Promise<Submission | null> => {
+    const { data } = await factCheckAPI.getHistory();
+    return data
+      .filter((item) => item.texte === claim)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] ?? null;
+  };
+
+  const pollTextSubmission = async (taskId: string, claim: string) => {
+    let lastStatus: BackendStatus | undefined;
+
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const { data } = await taskAPI.getStatus(taskId);
+      lastStatus = getTaskStatus(data);
+
+      if (lastStatus && lastStatus !== 'en cours') {
+        const submissionId = getSubmissionIdFromTask(data);
+        if (submissionId) return String(submissionId);
+
+        const submission = await latestMatchingSubmission(claim);
+        if (submission) return String(submission.id);
+
+        throw new Error('Vérification terminée, mais le rapport est introuvable.');
       }
+
       await sleep(2000);
     }
     throw new Error("L'analyse prend plus de temps que prévu. Réessayez depuis l'historique.");
@@ -157,17 +181,18 @@ export function useVerify(router: any) {
 
     try {
       if (tab === 'Texte') {
-        const { data } = await factCheckAPI.submit({ texte: texte.trim(), source: '' });
-        await pollTextSubmission(data.id);
-        router.push(`/result/${data.id}?kind=text`);
+        const claim = texte.trim();
+        const { data } = await factCheckAPI.submit({ texte: claim, source: '' });
+        const submissionId = await pollTextSubmission(data.task_id, claim);
+        router.push(`/result/${submissionId}?kind=text`);
         return;
       }
 
       if (tab === 'URL') {
         const normalizedUrl = url.trim();
         const { data } = await factCheckAPI.submit({ texte: normalizedUrl, source: normalizedUrl });
-        await pollTextSubmission(data.id);
-        router.push(`/result/${data.id}?kind=text`);
+        const submissionId = await pollTextSubmission(data.task_id, normalizedUrl);
+        router.push(`/result/${submissionId}?kind=text`);
         return;
       }
 

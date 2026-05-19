@@ -4,28 +4,33 @@
 
 The mobile app expects a backend API compatible with the routes in `services/api.ts`.
 
-Set the API base URL in `.env`. The app fails fast on startup when this value is missing outside tests:
+Set the backend and Supabase project values in `.env`. The app fails fast on startup when these values are missing outside tests:
 
 ```bash
-EXPO_PUBLIC_API_URL=http://localhost:8000/api
+EXPO_PUBLIC_BACKEND_URL=http://localhost:8000
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 `localhost` works only when the app runtime can reach a backend on the same host. For physical device testing, `localhost` points to the device, not your computer. Use a LAN IP address or a tunnel URL that you control:
 
 ```bash
-EXPO_PUBLIC_API_URL=http://192.168.1.20:8000/api
+EXPO_PUBLIC_BACKEND_URL=http://192.168.1.20:8000
 ```
 
 Do not commit local tunnel URLs.
 
+The current mobile client signs users in directly with Supabase Auth and sends the Supabase access token as `Authorization: Bearer <supabase_jwt>` to the backend. It does not call the backend `/api/auth/*` proxy views.
+
 The current mobile client calls these backend capabilities:
 
-- Authentication through `/auth/login/`, `/auth/register/`, `/auth/user/`, and `/auth/logout/`.
-- Text and URL submissions through `/submissions/`, with result polling on `/submissions/{id}/`.
-- Image AI detection through `/detect-ai-image/`.
-- Image content verification through `/verify-image-content/`.
-- Image history through `/image-verifications/`.
-- Asynchronous task polling through `/task-status/{taskId}/`.
+- Text and URL submissions through `POST /api/submissions/`, with task polling on `/api/task-status/{taskId}/`.
+- User text history through `GET /api/user-submissions/`.
+- Image AI detection through `POST /api/detect-ai-image/`.
+- Image content verification through `POST /api/verify-image-content/`.
+- Image history through `GET /api/image-verifications/`.
+- Public facts through `GET /api/facts/`.
+- Public keywords through `GET /api/keywords/`.
 
 Audio verification is still UI-only and intentionally disabled in the analyze button until a backend contract is added.
 
