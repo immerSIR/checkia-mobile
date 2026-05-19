@@ -5,20 +5,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { P } from '../../constants/colors';
 import { s } from '../../styles/home.styles';
-import { MOCK_HISTORY, MOCK_STATS, FactCheck } from '../../data/homeData';
+import { MOCK_HISTORY, FactCheck } from '../../data/homeData';
 import { factCheckAPI, imageVerificationAPI } from '../../services/api';
 import { mapImageToFactCheck, mapSubmissionToFactCheck } from '../../utils/apiMappers';
 
-// Import de nos nouveaux composants
 import { HomeHeader } from '../../components/home/HomeHeader';
 import { HomeHero } from '../../components/home/HomeHero';
-import { HomeStats } from '../../components/home/HomeStats';
 import { HistoryRow } from '../../components/home/HistoryRow';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [history, setHistory] = useState<FactCheck[]>(MOCK_HISTORY);
-  const [stats, setStats] = useState(MOCK_STATS);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,11 +36,6 @@ export default function HomeScreen() {
 
       if (items.length > 0) {
         setHistory(items.slice(0, 5));
-        setStats({
-          suivi: items.length,
-          vrai: items.filter((item) => item.verdict === 'VRAI').length,
-          faux: items.filter((item) => item.verdict === 'FAUX').length,
-        });
       }
     } catch (e) {
       console.log(e);
@@ -62,7 +54,6 @@ export default function HomeScreen() {
       >
         <HomeHeader name="Ibrahima" />
         <HomeHero />
-        <HomeStats stats={stats} />
 
         <View style={s.sectionHeader}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
