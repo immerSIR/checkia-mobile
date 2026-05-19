@@ -1,14 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Redirect } from 'expo-router';
 
 export default function Index() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>✓ Check-IA fonctionne !</Text>
-    </View>
-  );
+  return <Redirect href="/splash" />;
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050D1A', alignItems: 'center', justifyContent: 'center' },
-  text: { color: '#00D4AA', fontSize: 22, fontWeight: '800' },
-});
