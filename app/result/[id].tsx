@@ -70,6 +70,16 @@ export default function ResultScreen() {
     RESULT?.verdict === 'FAUX'   ? P.red     :
     P.warning;
 
+  const verdictBg =
+    RESULT?.verdict === 'VRAI'   ? '#F0FDF4' :
+    RESULT?.verdict === 'FAUX'   ? '#FEF2F2' :
+    '#FEFBEB';
+
+  const verdictIcon: keyof typeof Ionicons.glyphMap =
+    RESULT?.verdict === 'VRAI'   ? 'shield-checkmark' :
+    RESULT?.verdict === 'FAUX'   ? 'warning' :
+    'hourglass-outline';
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={P.bg} />
@@ -112,6 +122,25 @@ export default function ResultScreen() {
 
         {!loading && RESULT && (
           <>
+        {/* ── Panneau statut (mirroir du web : icône + titre + chip + description) ── */}
+        <View
+          style={[
+            s.statusPanel,
+            { borderColor: verdictColor, backgroundColor: verdictBg },
+          ]}
+        >
+          <View style={[s.statusIconCircle, { backgroundColor: verdictColor }]}>
+            <Ionicons name={verdictIcon} size={26} color={P.white} />
+          </View>
+          <Text style={[s.statusTitle, { color: verdictColor }]}>
+            {RESULT.statusTitle}
+          </Text>
+          <View style={[s.statusChip, { backgroundColor: verdictColor }]}>
+            <Text style={s.statusChipText}>{RESULT.statusChip}</Text>
+          </View>
+          <Text style={s.statusDescription}>{RESULT.statusDescription}</Text>
+        </View>
+
         {/* ── Barre de confiance (uniquement quand le backend fournit un score réel) ── */}
         {RESULT.hasConfidence && RESULT.score !== undefined && (
           <View style={s.scoreSection}>
@@ -257,6 +286,50 @@ const s = StyleSheet.create({
   headerMeta: {
     fontSize: 11, fontWeight: '600',
     letterSpacing: 0.8, color: P.muted,
+  },
+
+  // Status panel (mirror web SubmitFact / AIImageDetection)
+  statusPanel: {
+    borderWidth: 2,
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 22,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  statusIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  statusTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 10,
+    textAlign: 'center',
+    letterSpacing: -0.2,
+  },
+  statusChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderRadius: 999,
+    marginBottom: 14,
+  },
+  statusChipText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+  statusDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: P.text,
+    textAlign: 'center',
   },
 
   // Score / confiance

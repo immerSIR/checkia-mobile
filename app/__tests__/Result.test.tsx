@@ -66,6 +66,15 @@ describe('Result Screen', () => {
     expect(queryByText('INDICE DE CONFIANCE')).toBeNull();
   });
 
+  it('affiche le panneau de statut avec titre et chip (mirroir du web)', async () => {
+    const { getByText } = render(<ResultScreen />);
+
+    await waitFor(() => {
+      expect(getByText('Information Vérifiée')).toBeTruthy();
+      expect(getByText('Fiable')).toBeTruthy();
+    });
+  });
+
   it('affiche l\'affirmation vérifiée', async () => {
     const { getByText } = render(<ResultScreen />);
 
