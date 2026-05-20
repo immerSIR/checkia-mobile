@@ -116,9 +116,7 @@ export default function ResultScreen() {
         >
           <Ionicons name="arrow-back" size={16} color={P.text} />
         </TouchableOpacity>
-        <Text style={s.headerMeta}>
-          {RESULT ? `Rapport N°${RESULT.rapportNum} · ${RESULT.date}` : 'Rapport'}
-        </Text>
+        <Text style={s.headerMeta}>{RESULT?.date ?? ''}</Text>
         <View style={s.circleBtnSpacer} />
       </View>
 

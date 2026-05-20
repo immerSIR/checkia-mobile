@@ -3,7 +3,6 @@ import { ImageVerification, Submission } from '../services/api';
 
 export type ResultViewModel = {
   id: string;
-  rapportNum: string;
   date: string;
   verdict: Verdict;
   statusTitle: string;
@@ -167,7 +166,6 @@ export const mapSubmissionToResult = (submission: Submission): ResultViewModel =
 
   return {
     id: String(submission.id),
-    rapportNum: String(submission.id).padStart(3, '0'),
     date: formatReportDate(submission.date),
     verdict: mapSubmissionStatusToVerdict(submission.statut),
     statusTitle: preset.title,
@@ -186,7 +184,6 @@ export const mapImageToResult = (verification: ImageVerification): ResultViewMod
 
   return {
     id: `image-${verification.id}`,
-    rapportNum: String(verification.id).padStart(3, '0'),
     date: formatReportDate(verification.date),
     verdict: mapImageStatusToVerdict(verification.status),
     statusTitle: preset.title,
