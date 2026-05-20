@@ -45,6 +45,10 @@ describe('useVerify Hook', () => {
       (taskAPI.getStatus as jest.Mock).mockResolvedValue({
         data: { statut: 'vérifié', submission_id: 1 },
       });
+      // waitForSubmissionFinalized polls this until statut !== 'en cours'
+      (factCheckAPI.getResult as jest.Mock).mockResolvedValue({
+        data: { id: 1, statut: 'vérifié', texte: 'Info importante', date: '2026-05-20T10:00:00Z' },
+      });
       const { result } = renderHook(() => useVerify(mockRouter));
 
       act(() => {

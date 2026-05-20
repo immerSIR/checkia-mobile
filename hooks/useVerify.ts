@@ -97,6 +97,24 @@ export function useVerify(router: any) {
     throw new Error("L'analyse prend plus de temps que prévu. Réessayez depuis l'historique.");
   };
 
+  // After task-status reports done, the submission row may still read
+  // 'en cours' briefly (separate DB read path). Wait until the row
+  // itself is finalized so the result screen never shows an in-progress
+  // state under the normal flow.
+  const waitForSubmissionFinalized = async (submissionId: string) => {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      try {
+        const { data } = await factCheckAPI.getResult(submissionId);
+        if (data.statut && data.statut !== 'en cours') return;
+      } catch {
+        // ignore transient errors, retry
+      }
+      await sleep(1500);
+    }
+    // Don't throw — if we time out here, the result screen will still
+    // render and (eventually) the user can come back to it from history.
+  };
+
   const pollImageTask = async (taskId: string): Promise<any> => {
     let currentTaskId = taskId;
 
@@ -147,6 +165,7 @@ export function useVerify(router: any) {
         const sourceUrl = source.trim();
         const { data } = await factCheckAPI.submit({ texte: claim, source: sourceUrl });
         const submissionId = await pollTextSubmission(data.task_id, claim);
+        await waitForSubmissionFinalized(submissionId);
         await settleAnimation(startedAt);
         router.push(`/result/${submissionId}?kind=text`);
         return;
