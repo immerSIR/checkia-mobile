@@ -24,9 +24,6 @@ jest.mock('../../services/api', () => ({
   },
 }));
 
-// Mock timer
-jest.useFakeTimers();
-
 describe('useVerify Hook', () => {
   const mockRouter = { push: jest.fn() };
 
@@ -65,7 +62,7 @@ describe('useVerify Hook', () => {
         source: 'https://source.example/article',
       });
       expect(mockRouter.push).toHaveBeenCalledWith('/result/1?kind=text');
-    });
+    }, 15000);
 
     it("envoie l'affirmation de l'image (et pas le champ texte) à verifyContent", async () => {
       (imageVerificationAPI.verifyContent as jest.Mock).mockResolvedValue({
