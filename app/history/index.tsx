@@ -101,50 +101,52 @@ export default function History() {
                   Page {safePage} / {totalPages}
                 </Text>
               </View>
-              {pageItems.map((item, index) => {
-                const icon = item.input_type === 'url' ? 'link-outline' : 'document-text-outline';
-                const source = item.source || 'TEXTE';
-                const time = formatRowTimestamp(item.created_at);
+              <View style={styles.rowsContainer}>
+                {pageItems.map((item, index) => {
+                  const icon = item.input_type === 'url' ? 'link-outline' : 'document-text-outline';
+                  const source = item.source || 'TEXTE';
+                  const time = formatRowTimestamp(item.created_at);
 
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.row, index !== pageItems.length - 1 && styles.rowBorder]}
-                    activeOpacity={0.85}
-                    onPress={() => navigateToResult(item)}
-                  >
-                    <View style={styles.rowTop}>
-                      <View style={styles.metaLeft}>
-                        <View style={[styles.metaDot, { backgroundColor: palette.green }]} />
-                        <Ionicons
-                          name={icon as any}
-                          size={12}
-                          color={palette.ink4}
-                          style={{ marginRight: 6 }}
-                        />
-                        <Text style={styles.source}>{source.toUpperCase()}</Text>
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[styles.row, index !== pageItems.length - 1 && styles.rowBorder]}
+                      activeOpacity={0.85}
+                      onPress={() => navigateToResult(item)}
+                    >
+                      <View style={styles.rowTop}>
+                        <View style={styles.metaLeft}>
+                          <View style={[styles.metaDot, { backgroundColor: palette.green }]} />
+                          <Ionicons
+                            name={icon as any}
+                            size={12}
+                            color={palette.ink4}
+                            style={{ marginRight: 6 }}
+                          />
+                          <Text style={styles.source}>{source.toUpperCase()}</Text>
+                        </View>
+
+                        <Text style={styles.time}>{time}</Text>
                       </View>
 
-                      <Text style={styles.time}>{time}</Text>
-                    </View>
+                      <Text style={styles.itemTitle}>{item.raw_input}</Text>
 
-                    <Text style={styles.itemTitle}>{item.raw_input}</Text>
+                      <View style={styles.bottomLine}>
+                        <View style={[styles.verdictBadge, { backgroundColor: palette.greenBg }]}>
+                          <Ionicons name="checkmark" size={12} color={palette.green} />
+                          <Text style={[styles.verdictText, { color: palette.green }]}>
+                            VÉRIFIÉ · VRAI
+                          </Text>
+                        </View>
 
-                    <View style={styles.bottomLine}>
-                      <View style={[styles.verdictBadge, { backgroundColor: palette.greenBg }]}>
-                        <Ionicons name="checkmark" size={12} color={palette.green} />
-                        <Text style={[styles.verdictText, { color: palette.green }]}>
-                          VÉRIFIÉ · VRAI
-                        </Text>
+                        {typeof item.score === 'number' && (
+                          <Text style={styles.score}>{item.score}%</Text>
+                        )}
                       </View>
-
-                      {typeof item.score === 'number' && (
-                        <Text style={styles.score}>{item.score}%</Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
               {totalPages > 1 && (
                 <View style={styles.paginationRow}>
@@ -259,6 +261,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: palette.ink3,
     fontWeight: '500',
+  },
+  // Reserves space for a full page of rows so the pagination
+  // controls stay at the same Y position even when the last page
+  // has fewer than ITEMS_PER_PAGE entries.
+  rowsContainer: {
+    minHeight: ITEMS_PER_PAGE * 120,
   },
   paginationRow: {
     flexDirection: 'row',
