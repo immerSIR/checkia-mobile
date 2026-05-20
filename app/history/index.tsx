@@ -21,10 +21,13 @@ const palette = {
   greenBg: '#D6E6D8',
 };
 
+const ITEMS_PER_PAGE = 5;
+
 export default function History() {
   const router = useRouter();
   const [items, setItems] = useState<FactCheck[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -85,53 +88,88 @@ export default function History() {
           Aucun fait vérifié pour le moment. Lancez une vérification depuis l'onglet Vérifier.
         </Text>
       ) : (
-        <View style={styles.group}>
-          <Text style={styles.groupTitle}>MES FAITS VÉRIFIÉS</Text>
-          {items.map((item, index) => {
-            const icon = item.input_type === 'url' ? 'link-outline' : 'document-text-outline';
-            const source = item.source || 'TEXTE';
-            const time = formatRowTimestamp(item.created_at);
+        (() => {
+          const totalPages = Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE));
+          const safePage = Math.min(page, totalPages);
+          const start = (safePage - 1) * ITEMS_PER_PAGE;
+          const pageItems = items.slice(start, start + ITEMS_PER_PAGE);
+          return (
+            <View style={styles.group}>
+              <View style={styles.groupHeader}>
+                <Text style={styles.groupTitle}>MES FAITS VÉRIFIÉS</Text>
+                <Text style={styles.pageIndicator}>
+                  Page {safePage} / {totalPages}
+                </Text>
+              </View>
+              {pageItems.map((item, index) => {
+                const icon = item.input_type === 'url' ? 'link-outline' : 'document-text-outline';
+                const source = item.source || 'TEXTE';
+                const time = formatRowTimestamp(item.created_at);
 
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={[styles.row, index !== items.length - 1 && styles.rowBorder]}
-                activeOpacity={0.85}
-                onPress={() => navigateToResult(item)}
-              >
-                <View style={styles.rowTop}>
-                  <View style={styles.metaLeft}>
-                    <View style={[styles.metaDot, { backgroundColor: palette.green }]} />
-                    <Ionicons
-                      name={icon as any}
-                      size={12}
-                      color={palette.ink4}
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text style={styles.source}>{source.toUpperCase()}</Text>
-                  </View>
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[styles.row, index !== pageItems.length - 1 && styles.rowBorder]}
+                    activeOpacity={0.85}
+                    onPress={() => navigateToResult(item)}
+                  >
+                    <View style={styles.rowTop}>
+                      <View style={styles.metaLeft}>
+                        <View style={[styles.metaDot, { backgroundColor: palette.green }]} />
+                        <Ionicons
+                          name={icon as any}
+                          size={12}
+                          color={palette.ink4}
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text style={styles.source}>{source.toUpperCase()}</Text>
+                      </View>
 
-                  <Text style={styles.time}>{time}</Text>
+                      <Text style={styles.time}>{time}</Text>
+                    </View>
+
+                    <Text style={styles.itemTitle}>{item.raw_input}</Text>
+
+                    <View style={styles.bottomLine}>
+                      <View style={[styles.verdictBadge, { backgroundColor: palette.greenBg }]}>
+                        <Ionicons name="checkmark" size={12} color={palette.green} />
+                        <Text style={[styles.verdictText, { color: palette.green }]}>
+                          VÉRIFIÉ · VRAI
+                        </Text>
+                      </View>
+
+                      {typeof item.score === 'number' && (
+                        <Text style={styles.score}>{item.score}%</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {totalPages > 1 && (
+                <View style={styles.paginationRow}>
+                  <TouchableOpacity
+                    disabled={safePage === 1}
+                    onPress={() => setPage((p) => Math.max(1, p - 1))}
+                    style={[styles.pageBtn, safePage === 1 && styles.pageBtnDisabled]}
+                  >
+                    <Ionicons name="chevron-back" size={14} color={palette.ink} />
+                    <Text style={styles.pageBtnText}>Précédent</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    disabled={safePage === totalPages}
+                    onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    style={[styles.pageBtn, safePage === totalPages && styles.pageBtnDisabled]}
+                  >
+                    <Text style={styles.pageBtnText}>Suivant</Text>
+                    <Ionicons name="chevron-forward" size={14} color={palette.ink} />
+                  </TouchableOpacity>
                 </View>
-
-                <Text style={styles.itemTitle}>{item.raw_input}</Text>
-
-                <View style={styles.bottomLine}>
-                  <View style={[styles.verdictBadge, { backgroundColor: palette.greenBg }]}>
-                    <Ionicons name="checkmark" size={12} color={palette.green} />
-                    <Text style={[styles.verdictText, { color: palette.green }]}>
-                      VÉRIFIÉ · VRAI
-                    </Text>
-                  </View>
-
-                  {typeof item.score === 'number' && (
-                    <Text style={styles.score}>{item.score}%</Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+              )}
+            </View>
+          );
+        })()
       )}
     </ScrollView>
   );
@@ -206,11 +244,49 @@ const styles = StyleSheet.create({
   group: {
     marginBottom: 14,
   },
+  groupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
   groupTitle: {
     fontSize: 10,
     fontWeight: '700',
     color: palette.ink4,
-    marginBottom: 10,
+  },
+  pageIndicator: {
+    fontSize: 11,
+    color: palette.ink3,
+    fontWeight: '500',
+  },
+  paginationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 10,
+  },
+  pageBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.rule,
+    backgroundColor: palette.paperLight,
+  },
+  pageBtnDisabled: {
+    opacity: 0.4,
+  },
+  pageBtnText: {
+    fontSize: 13,
+    color: palette.ink,
+    fontWeight: '600',
   },
 
   row: {
