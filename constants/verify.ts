@@ -16,39 +16,32 @@ export const TABS: VerifyTabItem[] = [
 
 export const ANALYSIS_STEPS = [
   { label: 'Extraction du texte', sub: null },
-  { label: 'Détection de la langue', sub: 'Français · bambara' },
-  { label: 'Recoupement sources', sub: '8 / 12', badge: 'en cours' },
+  { label: 'Recoupement sources', sub: null },
   { label: 'Analyse contextuelle IA', sub: null },
   { label: 'Génération du rapport', sub: null },
 ];
 
 export const STEP_TITLES = [
   {
-    etape: 'ÉTAPE 1 SUR 5',
+    etape: 'ÉTAPE 1 SUR 4',
     titre: 'Extraction du',
     titreItalic: 'texte.',
     desc: "Nous extrayons et préparons le contenu pour l'analyse.",
   },
   {
-    etape: 'ÉTAPE 2 SUR 5',
-    titre: 'Détection de la',
-    titreItalic: 'langue.',
-    desc: "Identification de la langue et du dialecte pour adapter l'analyse.",
-  },
-  {
-    etape: 'ÉTAPE 3 SUR 5',
+    etape: 'ÉTAPE 2 SUR 4',
     titre: 'Recoupement avec les',
     titreItalic: 'sources.',
-    desc: 'Nous comparons votre information à 12 sources de fact-checking du Sahel.',
+    desc: 'Nous comparons votre information à des sources de fact-checking du Sahel.',
   },
   {
-    etape: 'ÉTAPE 4 SUR 5',
+    etape: 'ÉTAPE 3 SUR 4',
     titre: 'Analyse contextuelle',
     titreItalic: 'IA.',
     desc: "L'intelligence artificielle analyse le contexte et les affirmations.",
   },
   {
-    etape: 'ÉTAPE 5 SUR 5',
+    etape: 'ÉTAPE 4 SUR 4',
     titre: 'Génération du',
     titreItalic: 'rapport.',
     desc: 'Compilation des résultats et rédaction du rapport final.',

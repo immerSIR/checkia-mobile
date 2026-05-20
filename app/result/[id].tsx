@@ -39,6 +39,7 @@ export default function ResultScreen() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
     const loadResult = async () => {
       if (!id) return;
       setLoading(true);
@@ -48,19 +49,25 @@ export default function ResultScreen() {
           const { data } = await imageVerificationAPI.getHistory();
           const verification = data.find((item) => String(item.id) === String(id));
           if (!verification) throw new Error('Résultat image introuvable.');
+          if (cancelled) return;
           setResult(mapImageToResult(verification));
         } else {
           const { data } = await factCheckAPI.getResult(id);
+          if (cancelled) return;
           setResult(mapSubmissionToResult(data));
         }
       } catch (err: any) {
+        if (cancelled) return;
         setError(err.message || 'Impossible de charger ce rapport.');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadResult();
+    return () => {
+      cancelled = true;
+    };
   }, [id, kind]);
 
   const RESULT = result;
@@ -109,9 +116,7 @@ export default function ResultScreen() {
         >
           <Ionicons name="arrow-back" size={16} color={P.text} />
         </TouchableOpacity>
-        <Text style={s.headerMeta}>
-          {RESULT ? `Rapport N°${RESULT.rapportNum} · ${RESULT.date}` : 'Rapport'}
-        </Text>
+        <Text style={s.headerMeta}>{RESULT?.date ?? ''}</Text>
         <View style={s.circleBtnSpacer} />
       </View>
 

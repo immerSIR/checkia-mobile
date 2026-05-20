@@ -47,13 +47,14 @@ describe('Result Screen', () => {
     (imageVerificationAPI.getHistory as jest.Mock).mockResolvedValue({ data: [] });
   });
 
-  it('affiche les informations du rapport', async () => {
-    const { getByText } = render(<ResultScreen />);
+  it("affiche la date du rapport, sans numéro \"Rapport N°…\" (aligné sur le web)", async () => {
+    const { getByText, queryByText } = render(<ResultScreen />);
 
     await waitFor(() => {
-      expect(getByText(/Rapport N°001/)).toBeTruthy();
       expect(getByText(/12 MARS 2026/)).toBeTruthy();
     });
+
+    expect(queryByText(/Rapport N°/)).toBeNull();
   });
 
   it('n\'affiche pas l\'indice de confiance pour une soumission texte (le backend ne le fournit pas)', async () => {

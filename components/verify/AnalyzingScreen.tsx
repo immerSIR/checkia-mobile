@@ -56,8 +56,7 @@ export default function AnalyzingScreen({ step, onClose }: Props) {
                     {st.sub && (isDone || isActive) && <Text style={as.stepSub}>{st.sub}</Text>}
                   </View>
 
-                  {isActive && st.badge && <Text style={as.badgeEnCours}>{st.badge}</Text>}
-                </View>
+                  </View>
 
                 {i < ANALYSIS_STEPS.length - 1 && <View style={as.stepSeparator} />}
               </View>

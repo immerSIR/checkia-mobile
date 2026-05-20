@@ -40,6 +40,11 @@ export function useVerify(router: any) {
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  const STEP_INTERVAL_MS = 1200;
+  // Minimum perceived analysis time so the user sees the full 5-step
+  // animation play out even when the backend caches and returns quickly.
+  const MIN_ANALYSIS_MS = ANALYSIS_STEPS.length * STEP_INTERVAL_MS;
+
   const startStepTicker = () => {
     if (analysisTimerRef.current) clearInterval(analysisTimerRef.current);
     let cur = 0;
@@ -47,7 +52,7 @@ export function useVerify(router: any) {
     analysisTimerRef.current = setInterval(() => {
       cur = Math.min(cur + 1, ANALYSIS_STEPS.length - 1);
       setStep(cur);
-    }, 1800);
+    }, STEP_INTERVAL_MS);
   };
 
   const stopStepTicker = () => {
@@ -92,6 +97,24 @@ export function useVerify(router: any) {
     throw new Error("L'analyse prend plus de temps que prévu. Réessayez depuis l'historique.");
   };
 
+  // After task-status reports done, the submission row may still read
+  // 'en cours' briefly (separate DB read path). Wait until the row
+  // itself is finalized so the result screen never shows an in-progress
+  // state under the normal flow.
+  const waitForSubmissionFinalized = async (submissionId: string) => {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      try {
+        const { data } = await factCheckAPI.getResult(submissionId);
+        if (data.statut && data.statut !== 'en cours') return;
+      } catch {
+        // ignore transient errors, retry
+      }
+      await sleep(1500);
+    }
+    // Don't throw — if we time out here, the result screen will still
+    // render and (eventually) the user can come back to it from history.
+  };
+
   const pollImageTask = async (taskId: string): Promise<any> => {
     let currentTaskId = taskId;
 
@@ -118,11 +141,23 @@ export function useVerify(router: any) {
     throw new Error("L'analyse image prend plus de temps que prévu.");
   };
 
+  // After backend polling completes, wait until the perceived animation
+  // has had time to play out, then briefly show the final step before
+  // navigating to the result. Avoids the screen jumping after step 2.
+  const settleAnimation = async (startedAt: number) => {
+    const elapsed = Date.now() - startedAt;
+    const remaining = MIN_ANALYSIS_MS - elapsed;
+    if (remaining > 0) await sleep(remaining);
+    setStep(ANALYSIS_STEPS.length - 1);
+    await sleep(450);
+  };
+
   const handleAnalyze = async () => {
     if (!canAnalyze()) return;
     setLoading(true);
     setError('');
     startStepTicker();
+    const startedAt = Date.now();
 
     try {
       if (tab === 'Texte') {
@@ -130,6 +165,8 @@ export function useVerify(router: any) {
         const sourceUrl = source.trim();
         const { data } = await factCheckAPI.submit({ texte: claim, source: sourceUrl });
         const submissionId = await pollTextSubmission(data.task_id, claim);
+        await waitForSubmissionFinalized(submissionId);
+        await settleAnimation(startedAt);
         router.push(`/result/${submissionId}?kind=text`);
         return;
       }
@@ -139,6 +176,7 @@ export function useVerify(router: any) {
           ? await imageVerificationAPI.detectAI(imageUri)
           : await imageVerificationAPI.verifyContent(imageUri, imageClaim.trim());
         const result = await pollImageTask(response.data.task_id);
+        await settleAnimation(startedAt);
         const id = result.verification_id;
         router.push(`/result/${id}?kind=image`);
       }
