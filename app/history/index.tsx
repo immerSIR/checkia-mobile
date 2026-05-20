@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { FactCheck } from '../../data/homeData';
 import { factCheckAPI } from '../../services/api';
 import { mapSubmissionToFactCheck } from '../../utils/apiMappers';
+import { formatRowTimestamp } from '../../utils/homeHelpers';
 
 const palette = {
   bg: '#F7F3E9',
@@ -89,10 +90,7 @@ export default function History() {
           {items.map((item, index) => {
             const icon = item.input_type === 'url' ? 'link-outline' : 'document-text-outline';
             const source = item.source || 'TEXTE';
-            const time = new Date(item.created_at).toLocaleTimeString('fr-FR', {
-              hour: '2-digit',
-              minute: '2-digit',
-            });
+            const time = formatRowTimestamp(item.created_at);
 
             return (
               <TouchableOpacity
