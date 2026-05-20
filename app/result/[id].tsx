@@ -31,36 +31,74 @@ const P = {
   warningLine:'#E8C97A',
 };
 
+const POLL_INTERVAL_MS = 2500;
+const MAX_POLL_ATTEMPTS = 40; // ~1m40s max
+
+const isTextStillPending = (statut?: string) => statut === 'en cours' || !statut;
+const isImageStillPending = (status?: string) =>
+  status === 'EN_COURS' || status === 'en cours' || !status;
+
 export default function ResultScreen() {
   const router = useRouter();
   const { id, kind } = useLocalSearchParams<{ id: string; kind?: string }>();
   const [result, setResult] = useState<ResultViewModel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const loadResult = async () => {
+    let cancelled = false;
+    let pollTimer: ReturnType<typeof setTimeout> | null = null;
+    let attempts = 0;
+
+    const fetchOnce = async (): Promise<boolean> => {
+      // returns true if backend still in progress and we should keep polling
+      if (kind === 'image') {
+        const { data } = await imageVerificationAPI.getHistory();
+        const verification = data.find((item) => String(item.id) === String(id));
+        if (!verification) throw new Error('Résultat image introuvable.');
+        if (cancelled) return false;
+        setResult(mapImageToResult(verification));
+        return isImageStillPending(verification.status);
+      }
+      const { data } = await factCheckAPI.getResult(id);
+      if (cancelled) return false;
+      setResult(mapSubmissionToResult(data));
+      return isTextStillPending(data.statut);
+    };
+
+    const loadAndPoll = async () => {
       if (!id) return;
-      setLoading(true);
       setError('');
       try {
-        if (kind === 'image') {
-          const { data } = await imageVerificationAPI.getHistory();
-          const verification = data.find((item) => String(item.id) === String(id));
-          if (!verification) throw new Error('Résultat image introuvable.');
-          setResult(mapImageToResult(verification));
-        } else {
-          const { data } = await factCheckAPI.getResult(id);
-          setResult(mapSubmissionToResult(data));
-        }
-      } catch (err: any) {
-        setError(err.message || 'Impossible de charger ce rapport.');
-      } finally {
+        let stillPending = await fetchOnce();
+        if (cancelled) return;
         setLoading(false);
+
+        while (stillPending && attempts < MAX_POLL_ATTEMPTS && !cancelled) {
+          attempts++;
+          setRefreshing(true);
+          await new Promise<void>((resolve) => {
+            pollTimer = setTimeout(resolve, POLL_INTERVAL_MS);
+          });
+          if (cancelled) return;
+          stillPending = await fetchOnce();
+        }
+        if (!cancelled) setRefreshing(false);
+      } catch (err: any) {
+        if (cancelled) return;
+        setError(err.message || 'Impossible de charger ce rapport.');
+        setLoading(false);
+        setRefreshing(false);
       }
     };
 
-    loadResult();
+    loadAndPoll();
+
+    return () => {
+      cancelled = true;
+      if (pollTimer) clearTimeout(pollTimer);
+    };
   }, [id, kind]);
 
   const RESULT = result;
@@ -109,9 +147,12 @@ export default function ResultScreen() {
         >
           <Ionicons name="arrow-back" size={16} color={P.text} />
         </TouchableOpacity>
-        <Text style={s.headerMeta}>
-          {RESULT ? `Rapport N°${RESULT.rapportNum} · ${RESULT.date}` : 'Rapport'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={s.headerMeta}>
+            {RESULT ? `Rapport N°${RESULT.rapportNum} · ${RESULT.date}` : 'Rapport'}
+          </Text>
+          {refreshing && <ActivityIndicator size="small" color={P.muted} />}
+        </View>
         <View style={s.circleBtnSpacer} />
       </View>
 
