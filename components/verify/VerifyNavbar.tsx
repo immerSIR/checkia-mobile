@@ -1,7 +1,7 @@
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { s } from '../../styles/verify.styles';
-import { P } from "../../constants/colors";
+import { P } from '../../constants/colors';
 
 type Props = {
   onBack: () => void;
@@ -20,9 +20,7 @@ export default function VerifyNavbar({ onBack }: Props) {
 
       <Text style={s.navTitle}>NOUVELLE VÉRIFICATION</Text>
 
-      <TouchableOpacity style={s.navCircleBtn}>
-        <Ionicons name="ellipsis-horizontal" size={18} color={P.text} />
-      </TouchableOpacity>
+      <View style={s.navCircleBtn} />
     </View>
   );
 }

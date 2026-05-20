@@ -131,24 +131,6 @@ export default function Login() {
           fullWidth
         />
 
-        {/* ── Divider ── */}
-        <View style={s.divider}>
-          <View style={s.divLine} />
-          <Text style={s.divText}>ou</Text>
-          <View style={s.divLine} />
-        </View>
-
-        {/* ── Google ── */}
-        <Button
-          label="Continuer avec Google"
-          onPress={() => {}}
-          variant="secondary"
-          fullWidth
-          icon={
-            <Ionicons name="logo-google" size={18} color={Colors.accent} />
-          }
-        />
-
         {/* ── Lien register ── */}
         <Text style={s.footerText}>
           Pas encore de compte ?{' '}

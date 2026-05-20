@@ -53,6 +53,12 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    if (__DEV__ && error.response) {
+      const method = (originalRequest?.method || '').toUpperCase();
+      const url = `${originalRequest?.baseURL ?? ''}${originalRequest?.url ?? ''}`;
+      console.log(`[API ${error.response.status}] ${method} ${url}`);
+    }
+
     if (error.response?.status !== 401 || originalRequest?._retry) {
       return Promise.reject(error);
     }

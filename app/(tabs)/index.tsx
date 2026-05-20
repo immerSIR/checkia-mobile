@@ -5,9 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { P } from '../../constants/colors';
 import { s } from '../../styles/home.styles';
-import { MOCK_HISTORY, FactCheck } from '../../data/homeData';
-import { factCheckAPI, imageVerificationAPI } from '../../services/api';
-import { mapImageToFactCheck, mapSubmissionToFactCheck } from '../../utils/apiMappers';
+import { FactCheck } from '../../data/homeData';
+import { factCheckAPI } from '../../services/api';
+import { mapSubmissionToFactCheck } from '../../utils/apiMappers';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 import { HomeHeader } from '../../components/home/HomeHeader';
 import { HomeHero } from '../../components/home/HomeHero';
@@ -15,8 +16,9 @@ import { HistoryRow } from '../../components/home/HistoryRow';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [history, setHistory] = useState<FactCheck[]>(MOCK_HISTORY);
-  const [loading, setLoading] = useState(false);
+  const { user } = useCurrentUser();
+  const [history, setHistory] = useState<FactCheck[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -25,18 +27,12 @@ export default function HomeScreen() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [submissions, imageVerifications] = await Promise.all([
-        factCheckAPI.getHistory(),
-        imageVerificationAPI.getHistory().catch(() => ({ data: [] })),
-      ]);
-      const items = [
-        ...submissions.data.map(mapSubmissionToFactCheck),
-        ...imageVerifications.data.map(mapImageToFactCheck),
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const { data } = await factCheckAPI.getHistory();
+      const items = data
+        .map(mapSubmissionToFactCheck)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-      if (items.length > 0) {
-        setHistory(items.slice(0, 5));
-      }
+      setHistory(items.slice(0, 5));
     } catch (e) {
       console.log(e);
     } finally {
@@ -52,7 +48,7 @@ export default function HomeScreen() {
         contentContainerStyle={[s.container, { paddingBottom: 100 }]}
         showsVerticalScrollIndicator={false}
       >
-        <HomeHeader name="Ibrahima" />
+        <HomeHeader name={user.firstName} initials={user.initials} />
         <HomeHero />
 
         <View style={s.sectionHeader}>
@@ -61,25 +57,23 @@ export default function HomeScreen() {
             <Text style={s.sectionCount}>{history.length}</Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/history')}>
-            <Text style={s.sectionLink}>Tout voir</Text>
+            <Text style={s.sectionLink}>Faits vérifiés</Text>
           </TouchableOpacity>
         </View>
 
         {loading ? (
           <ActivityIndicator color={P.navy} style={{ marginTop: 20 }} />
+        ) : history.length === 0 ? (
+          <Text style={{ color: P.muted, fontSize: 14, marginTop: 12, lineHeight: 21 }}>
+            Aucune vérification pour le moment. Lancez-en une depuis l'onglet Vérifier.
+          </Text>
         ) : (
           history.map((item, i) => (
             <HistoryRow
               key={item.id}
               item={item}
               isLast={i === history.length - 1}
-              onPress={() => {
-                if (String(item.id).startsWith('image-')) {
-                  router.push(`/result/${String(item.id).replace('image-', '')}?kind=image`);
-                } else {
-                  router.push(`/result/${item.id}?kind=text`);
-                }
-              }}
+              onPress={() => router.push(`/result/${item.id}?kind=text`)}
             />
           ))
         )}

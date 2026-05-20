@@ -1,6 +1,6 @@
 /**
  * @file HomeComponents.test.tsx
- * @description Tests unitaires pour les composants du module Home (HistoryRow, HomeHeader, HomeHero, HomeStats).
+ * @description Tests unitaires pour les composants du module Home (HistoryRow, HomeHeader, HomeHero).
  */
 
 import React from 'react';
@@ -8,7 +8,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { HistoryRow } from '../HistoryRow';
 import { HomeHeader } from '../HomeHeader';
 import { HomeHero } from '../HomeHero';
-import { HomeStats } from '../HomeStats';
 
 // Mock Ionicons
 jest.mock('@expo/vector-icons', () => ({
@@ -66,15 +65,15 @@ describe('Home Module Components', () => {
 
   describe('HomeHeader', () => {
     it('affiche le nom de l\'utilisateur et la date', () => {
-      const { getByText } = render(<HomeHeader name="ImmersIA" />);
+      const { getByText } = render(<HomeHeader name="ImmersIA" initials="IA" />);
       expect(getByText(/Bonjour/)).toBeTruthy();
       expect(getByText(/ImmersIA/)).toBeTruthy();
       expect(getByText('Lundi 1 Janvier')).toBeTruthy();
     });
 
-    it('navigue vers le profil lors du clic sur l\'avatar', () => {
-      const { getByText } = render(<HomeHeader name="ImmersIA" />);
-      fireEvent.press(getByText('IK'));
+    it('affiche les initiales transmises et navigue vers le profil', () => {
+      const { getByText } = render(<HomeHeader name="ImmersIA" initials="IA" />);
+      fireEvent.press(getByText('IA'));
       expect(mockPush).toHaveBeenCalledWith('/profile');
     });
   });
@@ -92,20 +91,4 @@ describe('Home Module Components', () => {
     });
   });
 
-  describe('HomeStats', () => {
-    const mockStats = { suivi: 10, vrai: 7, faux: 3 };
-
-    it('affiche les statistiques correctement', () => {
-      const { getByText } = render(<HomeStats stats={mockStats} />);
-      expect(getByText('10')).toBeTruthy();
-      expect(getByText('7')).toBeTruthy();
-      expect(getByText('3')).toBeTruthy();
-    });
-
-    it('navigue vers l\'historique lors du clic sur la carte de suivi', () => {
-      const { getByText } = render(<HomeStats stats={mockStats} />);
-      fireEvent.press(getByText('Vérifications'));
-      expect(mockPush).toHaveBeenCalledWith('/history');
-    });
-  });
 });

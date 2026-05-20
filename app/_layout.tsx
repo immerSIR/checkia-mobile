@@ -24,7 +24,6 @@ export default function RootLayout() {
         <Stack.Screen name="splash" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="loading" />
         <Stack.Screen name="result/[id]" />
         <Stack.Screen name="history/index" />
         <Stack.Screen name="learn/[slug]" />

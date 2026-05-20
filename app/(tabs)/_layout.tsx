@@ -30,7 +30,8 @@ export default function TabsLayout() {
     }}>
       <Tabs.Screen name="index"   options={{ title: 'Accueil',  tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={24} color={color} /> }} />
       <Tabs.Screen name="verify"  options={{ title: 'Vérifier',   tabBarIcon: ({ color }) => <Ionicons name="search-outline" size={24} color={color} /> }} />
-      <Tabs.Screen name="learn"   options={{ title: 'Apprendre',tabBarIcon: ({ color }) => <Ionicons name="book-outline" size={24} color={color} /> }} />
+      {/* Apprendre (Learn) is hidden from the tab bar until the backend integration is finalized. */}
+      <Tabs.Screen name="learn"   options={{ href: null }} />
       <Tabs.Screen name="profile" options={{ title: 'Profil',   tabBarIcon: ({ color }) => <Ionicons name="person-outline" size={24} color={color} /> }} />
     </Tabs>
   );

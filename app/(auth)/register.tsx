@@ -202,11 +202,8 @@ export default function Register() {
             )}
           </View>
           <Text style={s.cguText}>
-            J'accepte les{' '}
-            <Text style={s.cguLink}>Conditions d'utilisation</Text>
-            {' '}et la{' '}
-            <Text style={s.cguLink}>Politique de confidentialité</Text>
-            . J'accepte aussi de partager mes vérifications de manière anonyme pour la recherche.
+            J'accepte les Conditions d'utilisation et la Politique de confidentialité.
+            J'accepte aussi de partager mes vérifications de manière anonyme pour la recherche.
           </Text>
         </TouchableOpacity>
 

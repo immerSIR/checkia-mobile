@@ -1,5 +1,6 @@
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { s } from '../../styles/verify.styles';
 import { P } from '../../constants/colors';
 
@@ -11,6 +12,11 @@ type Props = {
 };
 
 export default function VerifyTextTab({ texte, setTexte, source, setSource }: Props) {
+  const handlePaste = async () => {
+    const text = await Clipboard.getStringAsync();
+    if (text) setTexte(text.slice(0, 1000));
+  };
+
   return (
     <View>
       <Text style={s.sectionLabel}>— COLLEZ OU TAPEZ</Text>
@@ -30,12 +36,7 @@ export default function VerifyTextTab({ texte, setTexte, source, setSource }: Pr
         />
 
         <View style={s.textareaFooter}>
-          <TouchableOpacity style={s.chip}>
-            <Ionicons name="globe-outline" size={13} color={P.muted} />
-            <Text style={s.chipText}>Français</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={s.chip}>
+          <TouchableOpacity style={s.chip} onPress={handlePaste} activeOpacity={0.7}>
             <Ionicons name="clipboard-outline" size={13} color={P.muted} />
             <Text style={s.chipText}>Coller</Text>
           </TouchableOpacity>

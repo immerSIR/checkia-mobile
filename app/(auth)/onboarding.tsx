@@ -39,7 +39,7 @@ export default function OnboardingScreen() {
       <View style={styles.screen}>
         <View style={styles.headerMetaRow}>
           <Text style={styles.headerMetaLeft}>• BAMAKO · 2026</Text>
-          <Text style={styles.headerMetaRight}>FR · 1/3</Text>
+          <Text style={styles.headerMetaRight}>FR</Text>
         </View>
 
         <View style={styles.brandWrap}>
@@ -83,12 +83,6 @@ export default function OnboardingScreen() {
         </View>
 
         <View style={styles.flexSpacer} />
-
-        <View style={styles.pagination}>
-          <View style={styles.dotActive} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-        </View>
 
         <TouchableOpacity
           activeOpacity={0.92}

@@ -4,20 +4,16 @@ import { s } from '../../styles/home.styles';
 import { P } from '../../constants/colors';
 import { timeAgo, getVerdictUI } from '../../utils/homeHelpers';
 
-const getHistoryIcon = (item: any) => {
-  const type = (item.input_type || item.type || '').toLowerCase();
-  const text = (item.raw_input || '').toLowerCase();
-
-  if (type.includes('url') || text.startsWith('http')) return 'link-outline';
-  if (type.includes('image') || type.includes('photo')) return 'image-outline';
-  if (type.includes('audio') || type.includes('son')) return 'mic-outline';
+const getHistoryIcon = (inputType: string, rawInput: string) => {
+  const type = (inputType || '').toLowerCase();
+  if (type.includes('url') || rawInput.toLowerCase().startsWith('http')) return 'link-outline';
   return 'document-text-outline';
 };
 
 export const HistoryRow = ({ item, isLast, onPress }: any) => {
   const ui = getVerdictUI(item.verdict);
-  const icon = getHistoryIcon(item);
-  const domain = item.source || 'benbere.com';
+  const icon = getHistoryIcon(item.input_type, item.raw_input);
+  const sourceLabel = item.source || (item.input_type ? item.input_type.toUpperCase() : 'TEXTE');
   const verdictText = item.verdict === 'VRAI'
     ? '✓ VRAI'
     : item.verdict === 'FAUX'
@@ -42,7 +38,7 @@ export const HistoryRow = ({ item, isLast, onPress }: any) => {
         </Text>
 
         <Text style={s.metaText}>
-          {domain} · {timeAgo(item.created_at)}
+          {sourceLabel} · {timeAgo(item.created_at)}
         </Text>
       </View>
 

@@ -106,10 +106,10 @@ describe('Result Screen', () => {
     expect(mockRouter.back).toHaveBeenCalled();
   });
 
-  it('affiche les boutons d\'action en bas', () => {
-    const { getByText } = render(<ResultScreen />);
+  it('affiche le bouton Partager et plus Sauvegarder (retiré)', async () => {
+    const { findByText, queryByText } = render(<ResultScreen />);
 
-    expect(getByText('Partager')).toBeTruthy();
-    expect(getByText('Sauvegarder')).toBeTruthy();
+    expect(await findByText('Partager le rapport')).toBeTruthy();
+    expect(queryByText('Sauvegarder')).toBeNull();
   });
 });
