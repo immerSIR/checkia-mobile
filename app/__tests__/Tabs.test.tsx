@@ -32,6 +32,22 @@ jest.mock('expo-router', () => ({
   useRouter: jest.fn(),
 }));
 
+jest.mock('expo-audio', () => ({
+  AudioModule: {
+    getRecordingPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+    requestRecordingPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+  },
+  RecordingPresets: { HIGH_QUALITY: {} },
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
+  useAudioRecorder: () => ({
+    prepareToRecordAsync: jest.fn().mockResolvedValue(undefined),
+    record: jest.fn(),
+    stop: jest.fn().mockResolvedValue(undefined),
+    uri: null,
+  }),
+  useAudioRecorderState: () => ({ metering: -60, isRecording: false }),
+}));
+
 // Mock pour useVerify hook utilisé dans VerifyScreen
 jest.mock('../../hooks/useVerify', () => ({
   useVerify: () => ({

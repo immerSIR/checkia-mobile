@@ -6,9 +6,11 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
-import { factCheckAPI, imageVerificationAPI } from '../../services/api';
+import { useEffect, useRef, useState } from 'react';
+import { bambaraAPI, factCheckAPI, imageVerificationAPI } from '../../services/api';
 import { ResultViewModel, mapImageToResult, mapSubmissionToResult } from '../../utils/apiMappers';
+
+type AnalysisLang = 'fr' | 'bm';
 
 // ── Palette exacte storyboard ─────────────────────
 const P = {
@@ -33,10 +35,15 @@ const P = {
 
 export default function ResultScreen() {
   const router = useRouter();
-  const { id, kind } = useLocalSearchParams<{ id: string; kind?: string }>();
+  const { id, kind, bm } = useLocalSearchParams<{ id: string; kind?: string; bm?: string }>();
+  const isBambaraJourney = bm === '1';
   const [result, setResult] = useState<ResultViewModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [analysisLang, setAnalysisLang] = useState<AnalysisLang>(isBambaraJourney ? 'bm' : 'fr');
+  const [analysisBambara, setAnalysisBambara] = useState<string | null>(null);
+  const [translatingResult, setTranslatingResult] = useState(false);
+  const bambaraAttemptedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +76,52 @@ export default function ResultScreen() {
       cancelled = true;
     };
   }, [id, kind]);
+
+  // Phase C: for Bambara journeys, translate the final French analysis to Bambara
+  // once the verdict is loaded and terminal. Gate strictly on a terminal verdict
+  // so we never cache the "en cours" placeholder.
+  useEffect(() => {
+    if (!isBambaraJourney || !result || bambaraAttemptedRef.current) return;
+    if (result.statusChip === 'En Analyse') return;
+    const french = result.analysis?.trim();
+    if (!french) return;
+
+    bambaraAttemptedRef.current = true;
+    let cancelled = false;
+    setTranslatingResult(true);
+    bambaraAPI
+      .translate(french, 'fr', 'bm')
+      .then(({ data }) => {
+        if (cancelled) return;
+        const translated = (data?.translated_text ?? '').trim();
+        if (translated) {
+          setAnalysisBambara(translated);
+        } else {
+          setAnalysisLang('fr');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setAnalysisLang('fr');
+      })
+      .finally(() => {
+        if (!cancelled) setTranslatingResult(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isBambaraJourney, result]);
+
+  const displayedAnalysis =
+    isBambaraJourney && analysisLang === 'bm' && analysisBambara
+      ? analysisBambara
+      : result?.analysis ?? '';
+
+  // Show the wait state from the moment we know it's a Bambara journey until
+  // either translation succeeds or the user/failure flips lang back to French.
+  // This avoids briefly flashing French before the translation effect kicks in.
+  const showBambaraWait =
+    isBambaraJourney && analysisLang === 'bm' && !analysisBambara;
 
   const RESULT = result;
 
@@ -195,10 +248,50 @@ export default function ResultScreen() {
         </View>
 
         {/* ── L'analyse ── */}
-        <Text style={s.sectionLabel}>— L'ANALYSE</Text>
-        <Text style={s.analyseText}>
-          {RESULT.analysis}
-        </Text>
+        <View style={s.analyseHeaderRow}>
+          <Text style={s.sectionLabel}>— L'ANALYSE</Text>
+          {isBambaraJourney && (analysisBambara || translatingResult) && (
+            <View style={s.langToggle} testID="result-lang-toggle">
+              <TouchableOpacity
+                style={[s.langToggleBtn, analysisLang === 'fr' && s.langToggleBtnActive]}
+                onPress={() => setAnalysisLang('fr')}
+                activeOpacity={0.85}
+                testID="toggle-fr"
+              >
+                <Text style={[s.langToggleText, analysisLang === 'fr' && s.langToggleTextActive]}>FR</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.langToggleBtn, analysisLang === 'bm' && s.langToggleBtnActive]}
+                onPress={() => setAnalysisLang('bm')}
+                activeOpacity={0.85}
+                disabled={!analysisBambara}
+                testID="toggle-bm"
+              >
+                <Text style={[s.langToggleText, analysisLang === 'bm' && s.langToggleTextActive, !analysisBambara && s.langToggleTextMuted]}>BM</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {showBambaraWait ? (
+          <View style={s.bambaraWait} testID="bambara-wait">
+            <ActivityIndicator color={P.navy} />
+            <Text style={s.bambaraWaitText}>
+              Traduction du résultat en bambara…
+            </Text>
+            <TouchableOpacity
+              style={s.bambaraEscape}
+              onPress={() => setAnalysisLang('fr')}
+              activeOpacity={0.85}
+            >
+              <Text style={s.bambaraEscapeText}>Voir en français</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={s.analyseText}>
+            {displayedAnalysis}
+          </Text>
+        )}
 
         {/* ── Sources croisées ── */}
         <Text style={s.sectionLabel} testID="sources-title">
@@ -436,6 +529,67 @@ const s = StyleSheet.create({
   },
 
   // Analyse
+  analyseHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  langToggle: {
+    flexDirection: 'row',
+    backgroundColor: P.surfaceAlt,
+    borderRadius: 999,
+    padding: 3,
+    marginBottom: 8,
+  },
+  langToggleBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  langToggleBtnActive: {
+    backgroundColor: P.white,
+  },
+  langToggleText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: P.muted,
+    letterSpacing: 0.6,
+  },
+  langToggleTextActive: {
+    color: P.navy,
+  },
+  langToggleTextMuted: {
+    opacity: 0.5,
+  },
+  bambaraWait: {
+    backgroundColor: P.surface,
+    borderWidth: 1,
+    borderColor: P.line,
+    borderRadius: 14,
+    padding: 18,
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 28,
+  },
+  bambaraWaitText: {
+    fontSize: 13,
+    color: P.text,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  bambaraEscape: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: P.surfaceAlt,
+    marginTop: 4,
+  },
+  bambaraEscapeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: P.navy,
+  },
   analyseText: {
     fontSize: 14, lineHeight: 22,
     color: P.text, marginBottom: 28,

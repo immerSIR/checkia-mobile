@@ -3,6 +3,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { BackendStatus, factCheckAPI, imageVerificationAPI, Submission, taskAPI, TaskStatusResponse } from '../services/api';
 import { ANALYSIS_STEPS, ImageMode, Tab } from '../constants/verify';
 
+export type ClaimLanguage = 'fr' | 'bm';
+
 export function useVerify(router: any) {
   const analysisTimerRef = useRef<any>(null);
   const [tab, setTab] = useState<Tab>('Texte');
@@ -14,6 +16,27 @@ export function useVerify(router: any) {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [imageMode, setImageMode] = useState<ImageMode>(null);
   const [imageClaim, setImageClaim] = useState('');
+  const [language, setLanguageState] = useState<ClaimLanguage>('fr');
+  const [translatedFromBambara, setTranslatedFromBambara] = useState(false);
+
+  const setLanguage = (next: ClaimLanguage) => {
+    if (next === language) return;
+    setLanguageState(next);
+    setTexte('');
+    setTranslatedFromBambara(false);
+    setError('');
+  };
+
+  const handleTexteEdit = (value: string) => {
+    setTexte(value);
+    if (translatedFromBambara) setTranslatedFromBambara(false);
+  };
+
+  const acceptBambaraTranslation = (frenchText: string) => {
+    setTexte(frenchText);
+    setTranslatedFromBambara(true);
+    setError('');
+  };
 
   const canAnalyze = () => {
     if (tab === 'Texte') return texte.trim().length > 0;
@@ -163,11 +186,13 @@ export function useVerify(router: any) {
       if (tab === 'Texte') {
         const claim = texte.trim();
         const sourceUrl = source.trim();
+        const submittedInBambara = language === 'bm';
         const { data } = await factCheckAPI.submit({ texte: claim, source: sourceUrl });
         const submissionId = await pollTextSubmission(data.task_id, claim);
         await waitForSubmissionFinalized(submissionId);
         await settleAnimation(startedAt);
-        router.push(`/result/${submissionId}?kind=text`);
+        const suffix = submittedInBambara ? '&bm=1' : '';
+        router.push(`/result/${submissionId}?kind=text${suffix}`);
         return;
       }
 
@@ -194,10 +219,14 @@ export function useVerify(router: any) {
   };
 
   return {
-    tab, setTab, loading, setLoading, step, setStep, error, setError, texte, setTexte,
+    tab, setTab, loading, setLoading, step, setStep, error, setError, texte,
+    setTexte: handleTexteEdit,
     source, setSource, imageUri, imageMode, setImageMode,
     imageClaim, setImageClaim,
     pickImage, clearImage,
     canAnalyze, handleAnalyze, ctaLabel,
+    language, setLanguage,
+    translatedFromBambara,
+    acceptBambaraTranslation,
   };
 }

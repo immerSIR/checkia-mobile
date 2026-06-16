@@ -182,6 +182,39 @@ export const taskAPI = {
     api.get<TaskStatusResponse>(`/api/task-status/${taskId}/`),
 };
 
+export type BambaraLang = 'bm' | 'fr';
+
+const audioMimeFromUri = (uri: string) => {
+  const ext = uri.split('.').pop()?.toLowerCase().split('?')[0];
+  if (ext === 'wav') return 'audio/wav';
+  if (ext === 'caf') return 'audio/x-caf';
+  if (ext === 'aac') return 'audio/aac';
+  return 'audio/m4a';
+};
+
+export const bambaraAPI = {
+  transcribe: (audioUri: string) => {
+    const name = getFilename(audioUri, 'dictation-bm.m4a');
+    const form = new FormData();
+    form.append('file', {
+      uri: audioUri,
+      name,
+      type: audioMimeFromUri(name),
+    } as any);
+    form.append('language', 'bm');
+    return api.post<{ text: string }>('/api/bambara/transcribe/', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 240_000,
+    });
+  },
+  translate: (text: string, sourceLang: BambaraLang, targetLang: BambaraLang) =>
+    api.post<{ translated_text: string }>('/api/bambara/translate/', {
+      text,
+      source_lang: sourceLang,
+      target_lang: targetLang,
+    }, { timeout: 30_000 }),
+};
+
 export const authAPI = {
   login: async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
