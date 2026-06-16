@@ -49,6 +49,11 @@ export default function Verify() {
                 setTexte={vm.setTexte}
                 source={vm.source}
                 setSource={vm.setSource}
+                language={vm.language}
+                onChangeLanguage={vm.setLanguage}
+                translatedFromBambara={vm.translatedFromBambara}
+                onBambaraTranslated={vm.acceptBambaraTranslation}
+                onBambaraError={vm.setError}
               />
             )}
 

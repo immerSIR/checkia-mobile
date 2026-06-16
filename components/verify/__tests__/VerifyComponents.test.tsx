@@ -18,6 +18,22 @@ jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',
 }));
 
+jest.mock('expo-audio', () => ({
+  AudioModule: {
+    getRecordingPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+    requestRecordingPermissionsAsync: jest.fn().mockResolvedValue({ granted: true }),
+  },
+  RecordingPresets: { HIGH_QUALITY: {} },
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
+  useAudioRecorder: () => ({
+    prepareToRecordAsync: jest.fn().mockResolvedValue(undefined),
+    record: jest.fn(),
+    stop: jest.fn().mockResolvedValue(undefined),
+    uri: null,
+  }),
+  useAudioRecorderState: () => ({ metering: -60, isRecording: false }),
+}));
+
 // Mock Constants
 jest.mock('../../../constants/verify', () => ({
   TABS: [
@@ -87,6 +103,61 @@ describe('Verify Module Components', () => {
       const sourceInput = getByPlaceholderText(/URL où vous avez vu/);
       fireEvent.changeText(sourceInput, 'https://example.com/article');
       expect(setSourceMock).toHaveBeenCalledWith('https://example.com/article');
+    });
+
+    it('affiche le sélecteur de langue Français/Bambara et émet le changement', () => {
+      const onChangeLanguageMock = jest.fn();
+      const { getByTestId, getByText } = render(
+        <VerifyTextTab
+          texte=""
+          setTexte={jest.fn()}
+          source=""
+          setSource={jest.fn()}
+          language="fr"
+          onChangeLanguage={onChangeLanguageMock}
+        />
+      );
+
+      expect(getByTestId('language-segmented')).toBeTruthy();
+      expect(getByText('Français')).toBeTruthy();
+      expect(getByText('Bambara')).toBeTruthy();
+
+      fireEvent.press(getByTestId('lang-bm'));
+      expect(onChangeLanguageMock).toHaveBeenCalledWith('bm');
+    });
+
+    it('en mode bambara cache la zone de texte tant que rien n\'a été dicté', () => {
+      const { queryByPlaceholderText, getByTestId, queryByTestId } = render(
+        <VerifyTextTab
+          texte=""
+          setTexte={jest.fn()}
+          source=""
+          setSource={jest.fn()}
+          language="bm"
+          onChangeLanguage={jest.fn()}
+        />
+      );
+
+      expect(getByTestId('bambara-dictation')).toBeTruthy();
+      expect(queryByPlaceholderText(/Le gouvernement du Mali/)).toBeNull();
+      expect(queryByTestId('translated-badge')).toBeNull();
+    });
+
+    it('affiche la zone de texte avec le badge « Traduit du bambara » après dictée', () => {
+      const { getByDisplayValue, getByTestId } = render(
+        <VerifyTextTab
+          texte="Le Mali a fait une annonce."
+          setTexte={jest.fn()}
+          source=""
+          setSource={jest.fn()}
+          language="bm"
+          onChangeLanguage={jest.fn()}
+          translatedFromBambara={true}
+        />
+      );
+
+      expect(getByTestId('translated-badge')).toBeTruthy();
+      expect(getByDisplayValue('Le Mali a fait une annonce.')).toBeTruthy();
     });
   });
 
